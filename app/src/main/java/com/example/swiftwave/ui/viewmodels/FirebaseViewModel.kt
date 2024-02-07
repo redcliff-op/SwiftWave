@@ -1,7 +1,9 @@
 package com.example.swiftwave.ui.viewmodels
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,7 +25,7 @@ class FirebaseViewModel(
 
     var chattingWith by mutableStateOf<UserData?>(null)
     var text by mutableStateOf("")
-    private var messagesListener: ListenerRegistration? = null
+    var newUser by mutableStateOf("")
 
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -67,6 +69,37 @@ class FirebaseViewModel(
             }
         }
     }
+
+    fun addUserToChatList(userMail: String, context: Context) {
+        viewModelScope.launch {
+            val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
+            if (!userQuery.isEmpty) {
+                val otherUser = userQuery.documents.first().toObject(UserData::class.java)
+                if (otherUser?.userId != userData.userId) {
+                    firebase.collection("users").document(userData.userId.toString())
+                        .update("chatList", FieldValue.arrayUnion(otherUser?.userId.toString()))
+                        .await()
+                    firebase.collection("users").document(otherUser?.userId.toString())
+                        .update("chatList", FieldValue.arrayUnion(userData.userId.toString())).addOnSuccessListener {
+                            Toast.makeText(
+                                context,
+                                "User Added to Friend List",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            loadChatListUsers()
+                        }
+                        .await()
+                }
+            }else{
+                Toast.makeText(
+                    context,
+                    "Given User has not Registered on the App!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
 
     fun sendMessage(otherUserId: String, message: String) {
         viewModelScope.launch{

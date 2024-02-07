@@ -16,7 +16,8 @@ class TaskViewModel : ViewModel(){
     var selected by mutableIntStateOf(0)
     var isSignedIn by mutableStateOf(false)
     var expandedPersonInfo by mutableStateOf(false)
-    var showNavBar by mutableStateOf(true)
+    var showNavBar by mutableStateOf(false)
+    var showDialog by mutableStateOf(false)
 
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {
         return listOf(

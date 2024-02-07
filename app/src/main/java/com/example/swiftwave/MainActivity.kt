@@ -11,7 +11,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -100,6 +107,24 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        },
+                        floatingActionButton = {
+                            AnimatedVisibility(
+                                visible = taskViewModel.showNavBar,
+                                enter = fadeIn() + slideInVertically(),
+                                exit = fadeOut() + slideOutVertically()
+                            ){
+                                FloatingActionButton(
+                                    onClick = {
+                                        taskViewModel.showDialog = !taskViewModel.showDialog
+                                    }
+                                ){
+                                    Icon(
+                                        imageVector = Icons.Rounded.Add,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
                         }
                     ){
                         NavHost(navController = navController, startDestination = "Login"){
@@ -138,6 +163,7 @@ class MainActivity : ComponentActivity() {
                                     if(googleAuthUiClient.getSignedInUser() != null) {
                                         taskViewModel.isSignedIn = true
                                         firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
+                                        taskViewModel.showNavBar = true
                                         navController.navigate("Chats")
                                     }
                                 }
@@ -165,6 +191,7 @@ class MainActivity : ComponentActivity() {
                                         ).show()
                                         taskViewModel.isSignedIn = true
                                         firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
+                                        taskViewModel.showNavBar = true
                                         navController.navigate("Chats")
                                         viewModel.resetState()
                                     }

@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.swiftwave.ui.components.CustomDialog
 import com.example.swiftwave.ui.components.PersonCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -30,6 +31,12 @@ fun chatScreen(
 ){
     firebaseViewModel.loadChatListUsers()
     val chatListUsers = firebaseViewModel.chatListUsers.collectAsState()
+    if(taskViewModel.showDialog){
+        CustomDialog(
+            taskViewModel = taskViewModel,
+            firebaseViewModel = firebaseViewModel
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
