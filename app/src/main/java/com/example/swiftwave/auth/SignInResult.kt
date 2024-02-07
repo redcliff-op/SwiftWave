@@ -6,8 +6,9 @@ data class SignInResult(
 )
 
 data class UserData(
-    val userId: String,
-    val username: String?,
-    val profilePictureUrl: String?,
-    val mail: String?
+    val userId: String? = "",
+    val username: String? = "",
+    val profilePictureUrl: String? = "",
+    val mail: String? = "",
+    val chatList: List<String>? = emptyList()
 )

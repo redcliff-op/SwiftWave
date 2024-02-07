@@ -1,0 +1,119 @@
+package com.example.swiftwave.ui.viewmodels
+
+import android.content.ContentValues.TAG
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.swiftwave.auth.UserData
+import com.example.swiftwave.data.model.MessageData
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
+class FirebaseViewModel(
+    val userData: UserData
+) : ViewModel() {
+
+    var chattingWith by mutableStateOf<UserData?>(null)
+    var text by mutableStateOf("")
+    private var messagesListener: ListenerRegistration? = null
+
+
+    private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
+    val chatListUsers: StateFlow<List<UserData>> = _chatListUsers
+
+    private var conversationsListener: ListenerRegistration? = null
+
+    init {
+        addUserToFirestore(userData)
+    }
+
+    fun loadChatListUsers() {
+        viewModelScope.launch {
+            val chatListUsers = mutableListOf<UserData>()
+            val userQuery = firebase.collection("users").document(userData.userId.toString()).get().await()
+            val currentUser = userQuery.toObject(UserData::class.java)
+
+            if (currentUser != null) {
+                for (userId in currentUser.chatList!!) {
+                    val friendQuery = firebase.collection("users").document(userId).get().await()
+                    val friend = friendQuery.toObject(UserData::class.java)
+                    friend?.let { chatListUsers.add(it) }
+                }
+            }
+            _chatListUsers.value = chatListUsers
+        }
+    }
+
+    private fun addUserToFirestore(user: UserData) {
+        viewModelScope.launch{
+            val userQuery = firebase.collection("users").document(user.userId.toString()).get().await()
+
+            if (!userQuery.exists()) {
+                firebase.collection("users").document(user.userId.toString())
+                    .set(user)
+                    .await()
+                firebase.collection("users").document(user.userId.toString())
+                    .update("chatList", emptyList<String>())
+                    .await()
+            }
+        }
+    }
+
+    fun sendMessage(otherUserId: String, message: String) {
+        viewModelScope.launch{
+            val currentTime = System.currentTimeMillis()
+            val messageData = MessageData(message, userData.userId.toString(), currentTime)
+            firebase.collection("conversations").document(userData.userId.toString())
+                .collection(otherUserId)
+                .add(messageData)
+                .await()
+
+            firebase.collection("conversations").document(otherUserId)
+                .collection(userData.userId.toString())
+                .add(messageData)
+                .await()
+        }
+    }
+
+    private val _chatMessages = MutableStateFlow<List<MessageData>>(emptyList())
+    val chatMessages: StateFlow<List<MessageData>> = _chatMessages
+
+    fun getMessagesWithUser() {
+        viewModelScope.launch {
+            val messages = firebase.collection("conversations").document(userData.userId.toString())
+                .collection(chattingWith?.userId.toString())
+                .orderBy("time")
+                .get()
+                .await()
+            _chatMessages.value = messages.toObjects(MessageData::class.java)
+        }
+    }
+
+    fun startMessageListener() {
+        conversationsListener = firebase.collection("conversations")
+            .document(userData.userId.toString())
+            .collection(chattingWith?.userId.toString())
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching messages", error)
+                    return@addSnapshotListener
+                }
+                getMessagesWithUser()
+            }
+    }
+
+
+    fun stopConversationsListener() {
+        conversationsListener?.remove()
+    }
+
+}

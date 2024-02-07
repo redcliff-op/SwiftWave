@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -86,16 +85,16 @@ fun accountScreen(
         )
         Spacer(modifier = Modifier.size(10.dp))
         Text(
-            text = userData?.mail?.substring(0, userData.mail.toString().length-10) ?: "",
+            text = userData?.mail.toString(),
             fontSize = 20.sp,
         )
         Text(
-            text = "User ID",
+            text = "Mail ID",
             fontSize = 15.sp,
             color = Color.Gray
         )
         Text(
-            text = "People can discover you through your UserID !",
+            text = "People can discover you through your Mail ID !",
             fontSize = 15.sp,
             color = Color.Gray
         )

@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,8 +34,10 @@ import com.example.swiftwave.auth.GoogleAuthUiClient
 import com.example.swiftwave.ui.screens.accountScreen
 import com.example.swiftwave.ui.screens.chatScreen
 import com.example.swiftwave.ui.screens.loginScreen
+import com.example.swiftwave.ui.screens.personChatScreen
 import com.example.swiftwave.ui.screens.settingsScreen
 import com.example.swiftwave.ui.theme.SwiftWaveTheme
+import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.SignInViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 import com.google.android.gms.auth.api.identity.Identity
@@ -56,6 +59,7 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         val taskViewModel = TaskViewModel()
+        lateinit var firebaseViewModel : FirebaseViewModel
         setContent {
             SwiftWaveTheme {
                 Surface(
@@ -65,37 +69,34 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val bottomBarList = taskViewModel.initialiseBottomNavBar()
                     Scaffold (
-                        containerColor = if(!taskViewModel.isSignedIn){
-                            Color(210, 240, 255 )
-                        }else{
-                            Color.Transparent
-                        },
                         bottomBar = {
-                            NavigationBar (
-                                containerColor = Color.Transparent
-                            ){
-                                if(taskViewModel.isSignedIn){
-                                    bottomBarList.forEachIndexed { index, item ->
-                                        NavigationBarItem(
-                                            selected = index == taskViewModel.selected,
-                                            onClick = {
-                                                taskViewModel.selected = index
-                                                navController.navigate(item.label)
-                                            },
-                                            icon = {
-                                                Icon(
-                                                    painter = painterResource(id = item.icon),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.fillMaxSize(0.35f),
-                                                    tint =
-                                                    if(taskViewModel.selected == index){
-                                                        MaterialTheme.colorScheme.primary
-                                                    }else{
-                                                        MaterialTheme.colorScheme.secondary
-                                                    }
-                                                )
-                                            }
-                                        )
+                            AnimatedVisibility(visible = taskViewModel.showNavBar) {
+                                NavigationBar (
+                                    containerColor = Color.Transparent
+                                ){
+                                    if(taskViewModel.isSignedIn){
+                                        bottomBarList.forEachIndexed { index, item ->
+                                            NavigationBarItem(
+                                                selected = index == taskViewModel.selected,
+                                                onClick = {
+                                                    taskViewModel.selected = index
+                                                    navController.navigate(item.label)
+                                                },
+                                                icon = {
+                                                    Icon(
+                                                        painter = painterResource(id = item.icon),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.fillMaxSize(0.35f),
+                                                        tint =
+                                                        if(taskViewModel.selected == index){
+                                                            MaterialTheme.colorScheme.primary
+                                                        }else{
+                                                            MaterialTheme.colorScheme.secondary
+                                                        }
+                                                    )
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -103,7 +104,11 @@ class MainActivity : ComponentActivity() {
                     ){
                         NavHost(navController = navController, startDestination = "Login"){
                             composable(route = "Chats"){
-                                chatScreen(taskViewModel)
+                                chatScreen(
+                                    taskViewModel = taskViewModel,
+                                    firebaseViewModel = firebaseViewModel,
+                                    navController = navController
+                                )
                             }
                             composable(route = "Account"){
                                 accountScreen(
@@ -132,6 +137,7 @@ class MainActivity : ComponentActivity() {
                                 LaunchedEffect(key1 = googleAuthUiClient.getSignedInUser()) {
                                     if(googleAuthUiClient.getSignedInUser() != null) {
                                         taskViewModel.isSignedIn = true
+                                        firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
                                         navController.navigate("Chats")
                                     }
                                 }
@@ -158,6 +164,7 @@ class MainActivity : ComponentActivity() {
                                             Toast.LENGTH_LONG
                                         ).show()
                                         taskViewModel.isSignedIn = true
+                                        firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
                                         navController.navigate("Chats")
                                         viewModel.resetState()
                                     }
@@ -175,6 +182,13 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     }
+                                )
+                            }
+                            composable(route = "PersonChat"){
+                                personChatScreen(
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel,
+                                    navController = navController,
                                 )
                             }
                         }
