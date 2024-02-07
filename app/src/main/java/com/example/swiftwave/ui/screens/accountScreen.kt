@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,15 +23,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.swiftwave.auth.UserData
+import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun accountScreen(
     userData: UserData?,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    navController: NavController,
+    firebaseViewModel: FirebaseViewModel
 ){
     Column(
         modifier = Modifier
@@ -98,6 +103,25 @@ fun accountScreen(
             fontSize = 15.sp,
             color = Color.Gray
         )
+        Spacer(modifier = Modifier.size(10.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    navController.navigate("EditBio")
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = firebaseViewModel.Bio
+            )
+            Text(
+                text = "Bio",
+                fontSize = 15.sp,
+                color = Color.Gray
+            )
+        }
         Spacer(modifier = Modifier.size(10.dp))
         Button(onClick = {onSignOut()}) {
             Text(

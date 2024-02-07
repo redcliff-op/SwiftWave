@@ -40,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.swiftwave.auth.GoogleAuthUiClient
 import com.example.swiftwave.ui.screens.accountScreen
 import com.example.swiftwave.ui.screens.chatScreen
+import com.example.swiftwave.ui.screens.editBioScreen
 import com.example.swiftwave.ui.screens.loginScreen
 import com.example.swiftwave.ui.screens.personChatScreen
 import com.example.swiftwave.ui.screens.settingsScreen
@@ -149,7 +150,9 @@ class MainActivity : ComponentActivity() {
                                             taskViewModel.isSignedIn = false
                                             navController.navigate("Login")
                                         }
-                                    }
+                                    },
+                                    navController = navController,
+                                    firebaseViewModel = firebaseViewModel
                                 )
                             }
                             composable(route = "Settings"){
@@ -216,6 +219,13 @@ class MainActivity : ComponentActivity() {
                                     firebaseViewModel = firebaseViewModel,
                                     taskViewModel = taskViewModel,
                                     navController = navController,
+                                )
+                            }
+                            composable(route = "EditBio"){
+                                editBioScreen(
+                                    userData = googleAuthUiClient.getSignedInUser()!!,
+                                    firebaseViewModel = firebaseViewModel,
+                                    navController = navController
                                 )
                             }
                         }

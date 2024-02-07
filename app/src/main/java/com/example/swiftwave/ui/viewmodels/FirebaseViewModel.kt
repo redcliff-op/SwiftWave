@@ -26,7 +26,7 @@ class FirebaseViewModel(
     var chattingWith by mutableStateOf<UserData?>(null)
     var text by mutableStateOf("")
     var newUser by mutableStateOf("")
-
+    var Bio by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -66,6 +66,10 @@ class FirebaseViewModel(
                 firebase.collection("users").document(user.userId.toString())
                     .update("chatList", emptyList<String>())
                     .await()
+            }else{
+                val currentUser = userQuery.toObject(UserData::class.java)
+                userData.bio = currentUser?.bio.toString()
+                Bio = currentUser?.bio.toString()
             }
         }
     }
@@ -144,9 +148,22 @@ class FirebaseViewModel(
             }
     }
 
-
     fun stopConversationsListener() {
         conversationsListener?.remove()
+    }
+
+    fun addBio() {
+        viewModelScope.launch {
+            val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+            userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val currentUser = documentSnapshot.toObject(UserData::class.java)
+                    currentUser?.bio = Bio
+                    userData.bio
+                    userDocumentRef.set(currentUser!!)
+                }
+            }
+        }
     }
 
 }

@@ -10,5 +10,6 @@ data class UserData(
     val username: String? = "",
     val profilePictureUrl: String? = "",
     val mail: String? = "",
-    val chatList: List<String>? = emptyList()
+    val chatList: List<String>? = emptyList(),
+    var bio: String? = ""
 )
