@@ -209,7 +209,9 @@ fun personChatScreen(
                 ){
                     Icon(
                         painter = painterResource(id = R.drawable.sendicon),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(35.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
