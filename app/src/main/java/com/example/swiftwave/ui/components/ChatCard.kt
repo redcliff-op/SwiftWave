@@ -52,7 +52,22 @@ fun chatCard(
     ){
         Card(
             modifier = Modifier.padding(10.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(
+                topStart = 20.dp,
+                topEnd = 20.dp,
+                bottomEnd =
+                    if(messageData.senderID==firebaseViewModel.userData.userId){
+                        0.dp
+                    }else{
+                        20.dp
+                    },
+                bottomStart =
+                if(messageData.senderID==firebaseViewModel.userData.userId){
+                    20.dp
+                }else{
+                    0.dp
+                },
+            ),
             colors = CardDefaults.cardColors(
                 containerColor =
                 if(messageData.senderID==firebaseViewModel.userData.userId){
