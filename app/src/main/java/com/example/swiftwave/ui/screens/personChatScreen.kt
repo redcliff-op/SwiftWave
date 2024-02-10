@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -212,17 +213,22 @@ fun personChatScreen(
             OutlinedTextField(
                 value = firebaseViewModel.text,
                 onValueChange = {newText -> firebaseViewModel.text = newText},
-                shape = RoundedCornerShape(50.dp),
+                shape = RoundedCornerShape(30.dp),
                 label = {
                     Text(
                         text = "Message",
-                        fontSize = 15.sp
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                maxLines = 1
+                maxLines = 4,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
+                    unfocusedBorderColor = Color.Transparent,
+                )
             )
             AnimatedVisibility(visible = firebaseViewModel.text.isNotEmpty()) {
                 IconButton(
