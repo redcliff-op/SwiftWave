@@ -41,6 +41,7 @@ import com.example.swiftwave.auth.GoogleAuthUiClient
 import com.example.swiftwave.ui.screens.accountScreen
 import com.example.swiftwave.ui.screens.chatScreen
 import com.example.swiftwave.ui.screens.editBioScreen
+import com.example.swiftwave.ui.screens.favoritesScreen
 import com.example.swiftwave.ui.screens.loginScreen
 import com.example.swiftwave.ui.screens.personChatScreen
 import com.example.swiftwave.ui.screens.settingsScreen
@@ -224,6 +225,13 @@ class MainActivity : ComponentActivity() {
                             composable(route = "EditBio"){
                                 editBioScreen(
                                     userData = googleAuthUiClient.getSignedInUser()!!,
+                                    firebaseViewModel = firebaseViewModel,
+                                    navController = navController
+                                )
+                            }
+                            composable(route = "Favorites"){
+                                favoritesScreen(
+                                    taskViewModel = taskViewModel,
                                     firebaseViewModel = firebaseViewModel,
                                     navController = navController
                                 )

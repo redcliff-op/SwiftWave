@@ -34,6 +34,8 @@ class FirebaseViewModel(
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
     val chatListUsers: StateFlow<List<UserData>> = _chatListUsers
+    private val _favorites = MutableStateFlow<List<UserData>>(emptyList())
+    val favorites : StateFlow<List<UserData>> = _favorites
 
     private var conversationsListener: ListenerRegistration? = null
 
@@ -48,6 +50,7 @@ class FirebaseViewModel(
     fun loadChatListUsers() {
         viewModelScope.launch {
             val chatListUsers = mutableListOf<UserData>()
+            val favorites = mutableListOf<UserData>()
             val userQuery = firebase.collection("users").document(userData.userId.toString()).get().await()
             val currentUser = userQuery.toObject(UserData::class.java)
             if (currentUser != null) {
@@ -65,8 +68,23 @@ class FirebaseViewModel(
                     friend?.latestMessage = latestMessage
                     friend?.let { chatListUsers.add(it) }
                 }
+                for (userId in currentUser.favorites!!) {
+                    val friendQuery = firebase.collection("users").document(userId).get().await()
+                    val friend = friendQuery.toObject(UserData::class.java)
+                    val latestMessageQuery = firebase.collection("conversations")
+                        .document(userData.userId.toString())
+                        .collection(userId)
+                        .orderBy("time", Query.Direction.DESCENDING)
+                        .limit(1)
+                        .get()
+                        .await()
+                    val latestMessage = latestMessageQuery.toObjects(MessageData::class.java).firstOrNull()
+                    friend?.latestMessage = latestMessage
+                    friend?.let { favorites.add(it) }
+                }
             }
             _chatListUsers.value = chatListUsers
+            _favorites.value = favorites
         }
     }
 
@@ -131,6 +149,28 @@ class FirebaseViewModel(
                     "Given User has not Registered on the App!",
                     Toast.LENGTH_SHORT
                 ).show()
+            }
+        }
+    }
+
+    fun addUserToFavorites(userMail: String, context: Context) {
+        viewModelScope.launch {
+            val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
+            if (!userQuery.isEmpty) {
+                val otherUser = userQuery.documents.first().toObject(UserData::class.java)
+                if (otherUser?.userId != userData.userId) {
+                    firebase.collection("users").document(userData.userId.toString())
+                        .update("favorites", FieldValue.arrayUnion(otherUser?.userId.toString()))
+                        .addOnSuccessListener {
+                            Toast.makeText(
+                                context,
+                                "User Added to Favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            loadChatListUsers()
+                        }
+                        .await()
+                }
             }
         }
     }
@@ -226,6 +266,16 @@ class FirebaseViewModel(
                 .await()
         }
     }
+
+    fun deleteFavorite(friendUserId: String) {
+        viewModelScope.launch {
+            _favorites.value = _favorites.value.filter { it.userId != friendUserId }
+            firebase.collection("users").document(userData.userId.toString())
+                .update("favorites", FieldValue.arrayRemove(friendUserId))
+                .await()
+        }
+    }
+
     fun deleteMessage(otherUserId: String, messageData: MessageData) {
         viewModelScope.launch {
             val senderMessageRef = firebase.collection("conversations")

@@ -31,28 +31,26 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import com.example.swiftwave.ui.components.CustomDialog
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun chatScreen(
+fun favoritesScreen(
     taskViewModel: TaskViewModel,
     firebaseViewModel: FirebaseViewModel,
     navController: NavController
 ){
     firebaseViewModel.loadChatListUsers()
-    val chatListUsers = firebaseViewModel.chatListUsers.collectAsState()
+    val favorites = firebaseViewModel.favorites.collectAsState()
     if(taskViewModel.showDialog){
         CustomDialog(
             taskViewModel = taskViewModel,
@@ -60,7 +58,6 @@ fun chatScreen(
         )
     }
     val scope = rememberCoroutineScope()
-    val ctx = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +69,7 @@ fun chatScreen(
             modifier = Modifier.fillMaxWidth(0.9f)
         ){
             Text(
-                text = "Chats",
+                text = "Favorites",
                 fontSize = 50.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -82,7 +79,7 @@ fun chatScreen(
             modifier = Modifier.fillMaxWidth()
         ){
             items(
-                items = chatListUsers.value,
+                items = favorites.value,
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(
@@ -123,12 +120,12 @@ fun chatScreen(
                                             Text(text = "This operation is Irreversible")
                                         }
                                         IconButton(onClick = { scope.launch { dismissState.reset() } }) {
-                                            Icon(Icons.Rounded.Refresh, contentDescription = "Refresh")
+                                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                         }
                                         IconButton(onClick = {
                                             firebaseViewModel.deleteFriend(userData.userId.toString())
                                         }) {
-                                            Icon(Icons.Rounded.Delete, contentDescription = "Delete")
+                                            Icon(Icons.Default.Delete, contentDescription = "Delete")
                                         }
                                     }
                                 }
@@ -138,14 +135,12 @@ fun chatScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ){
-                                        Text(text = "Add Contact to Favorites ?")
+                                        Text(text = "Remove Contact From Favorites?")
                                         IconButton(onClick = { scope.launch { dismissState.reset() } }) {
-                                            Icon(Icons.Rounded.Refresh, contentDescription = "Refresh")
+                                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                         }
-                                        IconButton(onClick = {
-                                            firebaseViewModel.addUserToFavorites(userData.mail.toString(),ctx)
-                                        }) {
-                                            Icon(Icons.Rounded.Favorite, contentDescription = "Favorites")
+                                        IconButton(onClick = {firebaseViewModel.deleteFavorite(userData.userId.toString())}) {
+                                            Icon(Icons.Default.Delete, contentDescription = "Delete")
                                         }
                                     }
                                 }

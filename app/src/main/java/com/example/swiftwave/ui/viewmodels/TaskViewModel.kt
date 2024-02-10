@@ -22,8 +22,9 @@ class TaskViewModel : ViewModel(){
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {
         return listOf(
             bottomNavBarItem("Chats", R.drawable.chaticon),
+            bottomNavBarItem("Favorites",R.drawable.favoritesicon),
             bottomNavBarItem("Account",R.drawable.accounticon),
-            bottomNavBarItem("Settings",R.drawable.settingsicon)
+            bottomNavBarItem("Settings",R.drawable.settingsicon),
         )
     }
 

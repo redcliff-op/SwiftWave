@@ -13,6 +13,7 @@ data class UserData(
     val profilePictureUrl: String? = "",
     val mail: String? = "",
     val chatList: List<String>? = emptyList(),
+    val favorites: List<String>? = emptyList(),
     var bio: String? = "",
     var latestMessage: MessageData? = null
 )
