@@ -42,6 +42,7 @@ import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.swiftwave.R
+import com.example.swiftwave.ui.components.DeleteMessageDialog
 import com.example.swiftwave.ui.components.chatCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -63,6 +64,14 @@ fun personChatScreen(
             taskViewModel.expandedPersonInfo = false
             firebaseViewModel.startMessageListener()
         }
+    }
+
+    if(taskViewModel.showDeleteMsgDialog){
+        DeleteMessageDialog(
+            taskViewModel = taskViewModel,
+            firebaseViewModel = firebaseViewModel,
+            navController = navController
+        )
     }
 
     Column(

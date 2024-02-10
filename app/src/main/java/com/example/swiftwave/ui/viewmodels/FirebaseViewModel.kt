@@ -27,6 +27,7 @@ class FirebaseViewModel(
     var text by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
+    var deleteMessage by mutableStateOf<MessageData?>(null)
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -194,6 +195,32 @@ class FirebaseViewModel(
                     }
                 }
                 .await()
+        }
+    }
+    fun deleteMessage(otherUserId: String, messageData: MessageData) {
+        viewModelScope.launch {
+            val senderMessageRef = firebase.collection("conversations")
+                .document(userData.userId.toString())
+                .collection(otherUserId)
+                .whereEqualTo("message", messageData.message)
+                .whereEqualTo("time", messageData.time)
+                .get()
+                .await()
+
+            val receiverMessageRef = firebase.collection("conversations")
+                .document(otherUserId)
+                .collection(userData.userId.toString())
+                .whereEqualTo("message", messageData.message)
+                .whereEqualTo("time", messageData.time)
+                .get()
+                .await()
+
+            for (document in senderMessageRef.documents) {
+                document.reference.delete()
+            }
+            for (document in receiverMessageRef.documents) {
+                document.reference.delete()
+            }
         }
     }
 }

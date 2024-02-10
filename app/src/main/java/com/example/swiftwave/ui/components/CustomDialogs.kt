@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
@@ -92,5 +94,49 @@ fun CustomDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun DeleteMessageDialog(
+    taskViewModel: TaskViewModel,
+    firebaseViewModel: FirebaseViewModel,
+    navController: NavController
+){
+    val ctx = LocalContext.current
+    Dialog(
+        onDismissRequest = {
+            taskViewModel.showDeleteMsgDialog = false
+        }
+    ){
+        AlertDialog(
+            onDismissRequest = {taskViewModel.showDeleteMsgDialog = false},
+            title = { Text(text = "Delete Message?") },
+            text = { Text(text = "This Operation is Irreversible") },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        taskViewModel.showDeleteMsgDialog = false
+                        firebaseViewModel.deleteMessage = null
+                    },
+                ) {
+                    Text(text = "Cancel")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        firebaseViewModel.deleteMessage(
+                            otherUserId = firebaseViewModel.chattingWith?.userId.toString(),
+                            messageData = firebaseViewModel.deleteMessage!!
+                        )
+                        taskViewModel.showDeleteMsgDialog = false
+                        firebaseViewModel.deleteMessage = null
+                    },
+                ) {
+                    Text(text = "Delete")
+                }
+            }
+        )
     }
 }
