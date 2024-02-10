@@ -51,8 +51,8 @@ fun chatCard(
         }
     ){
         Card(
-            modifier = Modifier.padding(10.dp),
-            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.padding(5.dp),
+            shape = RoundedCornerShape(15.dp),
             colors = CardDefaults.cardColors(
                 containerColor =
                 if(messageData.senderID==firebaseViewModel.userData.userId){
