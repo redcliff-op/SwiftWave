@@ -1,5 +1,7 @@
 package com.example.swiftwave.auth
 
+import com.example.swiftwave.data.model.MessageData
+
 data class SignInResult(
     val data: UserData?,
     val errorMessage: String?
@@ -11,5 +13,6 @@ data class UserData(
     val profilePictureUrl: String? = "",
     val mail: String? = "",
     val chatList: List<String>? = emptyList(),
-    var bio: String? = ""
+    var bio: String? = "",
+    var latestMessage: MessageData? = null
 )

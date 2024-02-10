@@ -62,7 +62,7 @@ fun personChatScreen(
         onDispose {
             taskViewModel.showNavBar = true
             taskViewModel.expandedPersonInfo = false
-            firebaseViewModel.startMessageListener()
+            firebaseViewModel.stopConversationsListener()
         }
     }
 

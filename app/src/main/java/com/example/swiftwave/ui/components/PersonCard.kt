@@ -75,20 +75,20 @@ fun PersonCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                 )
-                if(false){
+                if(userData.latestMessage!=null){
                     Row (
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ){
                         Text(
-                            text = "",
+                            text = userData.latestMessage!!.message.toString(),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             color = Color.Gray,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = "",
+                            text = taskViewModel.getTime(userData.latestMessage!!.time?:0),
                             color = Color.Gray,
                         )
                     }

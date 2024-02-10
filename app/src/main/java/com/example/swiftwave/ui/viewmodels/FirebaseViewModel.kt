@@ -14,6 +14,8 @@ import com.example.swiftwave.data.model.MessageData
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -37,6 +39,10 @@ class FirebaseViewModel(
 
     init {
         addUserToFirestore(userData)
+        viewModelScope.launch {
+            delay(5000)
+            setupLatestMessageListener()
+        }
     }
 
     fun loadChatListUsers() {
@@ -44,15 +50,39 @@ class FirebaseViewModel(
             val chatListUsers = mutableListOf<UserData>()
             val userQuery = firebase.collection("users").document(userData.userId.toString()).get().await()
             val currentUser = userQuery.toObject(UserData::class.java)
-
             if (currentUser != null) {
                 for (userId in currentUser.chatList!!) {
                     val friendQuery = firebase.collection("users").document(userId).get().await()
                     val friend = friendQuery.toObject(UserData::class.java)
+                    val latestMessageQuery = firebase.collection("conversations")
+                        .document(userData.userId.toString())
+                        .collection(userId)
+                        .orderBy("time", Query.Direction.DESCENDING)
+                        .limit(1)
+                        .get()
+                        .await()
+                    val latestMessage = latestMessageQuery.toObjects(MessageData::class.java).firstOrNull()
+                    friend?.latestMessage = latestMessage
                     friend?.let { chatListUsers.add(it) }
                 }
             }
             _chatListUsers.value = chatListUsers
+        }
+    }
+
+    fun setupLatestMessageListener() {
+        chatListUsers.value.forEach { user ->
+            firebase.collection("conversations").document(userData.userId.toString())
+                .collection(user.userId.toString())
+                .orderBy("time", Query.Direction.DESCENDING)
+                .limit(1)
+                .addSnapshotListener { snapshots, error ->
+                    if (error != null) {
+                        Log.e(TAG, "Error fetching latest message", error)
+                        return@addSnapshotListener
+                    }
+                    loadChatListUsers()
+                }
         }
     }
 
@@ -104,7 +134,6 @@ class FirebaseViewModel(
             }
         }
     }
-
 
     fun sendMessage(otherUserId: String, message: String) {
         viewModelScope.launch{
