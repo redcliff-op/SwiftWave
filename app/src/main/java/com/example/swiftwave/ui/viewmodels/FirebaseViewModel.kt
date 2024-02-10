@@ -166,4 +166,34 @@ class FirebaseViewModel(
         }
     }
 
+    fun deleteFriend(friendUserId: String) {
+        viewModelScope.launch {
+            _chatListUsers.value = _chatListUsers.value.filter { it.userId != friendUserId }
+            firebase.collection("users").document(userData.userId.toString())
+                .update("chatList", FieldValue.arrayRemove(friendUserId))
+                .await()
+            firebase.collection("users").document(friendUserId)
+                .update("chatList", FieldValue.arrayRemove(userData.userId.toString()))
+                .await()
+            loadChatListUsers()
+            firebase.collection("conversations").document(userData.userId.toString())
+                .collection(friendUserId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        document.reference.delete()
+                    }
+                }
+                .await()
+            firebase.collection("conversations").document(friendUserId)
+                .collection(userData.userId.toString())
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        document.reference.delete()
+                    }
+                }
+                .await()
+        }
+    }
 }
