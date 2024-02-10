@@ -63,6 +63,7 @@ fun personChatScreen(
             taskViewModel.showNavBar = true
             taskViewModel.expandedPersonInfo = false
             firebaseViewModel.stopConversationsListener()
+            firebaseViewModel._chatMessages.value = emptyList()
         }
     }
 

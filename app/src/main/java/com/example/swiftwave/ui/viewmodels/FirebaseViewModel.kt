@@ -151,7 +151,7 @@ class FirebaseViewModel(
         }
     }
 
-    private val _chatMessages = MutableStateFlow<List<MessageData>>(emptyList())
+    val _chatMessages = MutableStateFlow<List<MessageData>>(emptyList())
     val chatMessages: StateFlow<List<MessageData>> = _chatMessages
 
     fun getMessagesWithUser() {
