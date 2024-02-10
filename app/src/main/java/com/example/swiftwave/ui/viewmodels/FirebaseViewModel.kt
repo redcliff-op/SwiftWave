@@ -273,6 +273,7 @@ class FirebaseViewModel(
             firebase.collection("users").document(userData.userId.toString())
                 .update("favorites", FieldValue.arrayRemove(friendUserId))
                 .await()
+            loadChatListUsers()
         }
     }
 
