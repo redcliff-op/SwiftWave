@@ -86,7 +86,7 @@ fun personChatScreen(
             modifier = Modifier
                 .fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(0.3f)
+                containerColor = MaterialTheme.colorScheme.primary.copy(0.2f)
             ),
             shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp),
             onClick = {
