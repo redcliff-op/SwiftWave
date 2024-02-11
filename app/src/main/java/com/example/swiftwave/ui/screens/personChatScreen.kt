@@ -1,6 +1,7 @@
 package com.example.swiftwave.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,8 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.DeleteMessageDialog
 import com.example.swiftwave.ui.components.chatCard
@@ -49,7 +49,7 @@ import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
 
-@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun personChatScreen(
     firebaseViewModel: FirebaseViewModel,
@@ -113,7 +113,7 @@ fun personChatScreen(
                         modifier = Modifier.size(35.dp)
                     )
                 }
-                GlideImage(
+                AsyncImage(
                     model = firebaseViewModel.chattingWith?.profilePictureUrl,
                     contentDescription = null,
                     modifier = Modifier

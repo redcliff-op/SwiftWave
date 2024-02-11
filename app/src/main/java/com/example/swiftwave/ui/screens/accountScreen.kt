@@ -24,12 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun accountScreen(
     userData: UserData?,
@@ -57,7 +55,7 @@ fun accountScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ){
-            GlideImage(
+            AsyncImage(
                 model = userData?.profilePictureUrl,
                 contentDescription = null,
                 modifier = Modifier
