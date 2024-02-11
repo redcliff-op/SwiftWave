@@ -79,7 +79,7 @@ fun favoritesScreen(
             modifier = Modifier.fillMaxWidth()
         ){
             items(
-                items = favorites.value,
+                items = favorites.value.sortedByDescending { it.latestMessage?.time },
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(

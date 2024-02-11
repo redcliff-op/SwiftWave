@@ -82,7 +82,7 @@ fun chatScreen(
             modifier = Modifier.fillMaxWidth()
         ){
             items(
-                items = chatListUsers.value,
+                items = chatListUsers.value.sortedByDescending { it.latestMessage?.time },
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(
