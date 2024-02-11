@@ -44,6 +44,7 @@ import com.example.swiftwave.ui.screens.editBioScreen
 import com.example.swiftwave.ui.screens.favoritesScreen
 import com.example.swiftwave.ui.screens.loginScreen
 import com.example.swiftwave.ui.screens.personChatScreen
+import com.example.swiftwave.ui.screens.searchScreen
 import com.example.swiftwave.ui.screens.settingsScreen
 import com.example.swiftwave.ui.theme.SwiftWaveTheme
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
@@ -233,6 +234,13 @@ class MainActivity : ComponentActivity() {
                                 favoritesScreen(
                                     taskViewModel = taskViewModel,
                                     firebaseViewModel = firebaseViewModel,
+                                    navController = navController
+                                )
+                            }
+                            composable(route = "SearchScreen"){
+                                searchScreen(
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel,
                                     navController = navController
                                 )
                             }

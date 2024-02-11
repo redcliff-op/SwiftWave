@@ -30,13 +30,15 @@ class FirebaseViewModel(
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
     var deleteMessage by mutableStateOf<MessageData?>(null)
+    var searchContact by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
     val chatListUsers: StateFlow<List<UserData>> = _chatListUsers
     private val _favorites = MutableStateFlow<List<UserData>>(emptyList())
     val favorites : StateFlow<List<UserData>> = _favorites
-
+    private val _searchContacts = MutableStateFlow<List<UserData>>(emptyList())
+    val searchContacts : StateFlow<List<UserData>> = _searchContacts
     private var conversationsListener: ListenerRegistration? = null
 
     init {
@@ -301,6 +303,18 @@ class FirebaseViewModel(
             for (document in receiverMessageRef.documents) {
                 document.reference.delete()
             }
+        }
+    }
+
+    fun filterContacts(
+        contactList : List<UserData>,
+        toSearch : String
+    ){
+        viewModelScope.launch {
+            val filteredList = contactList.filter {
+                it.username!!.contains(toSearch,true) || it.mail!!.contains(toSearch, true)
+            }
+            _searchContacts.emit(filteredList)
         }
     }
 }
