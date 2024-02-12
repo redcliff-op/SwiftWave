@@ -75,9 +75,9 @@ fun chatCard(
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if(messageData.senderID==firebaseViewModel.userData.userId){
-                        MaterialTheme.colorScheme.inversePrimary
+                        MaterialTheme.colorScheme.inversePrimary.copy(0.8f)
                     }else{
-                        MaterialTheme.colorScheme.secondaryContainer
+                        MaterialTheme.colorScheme.secondaryContainer.copy(0.8f)
                     }
                 )
             ) {
