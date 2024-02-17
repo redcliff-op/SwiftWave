@@ -11,8 +11,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
@@ -219,7 +224,15 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            composable(route = "PersonChat"){
+                            composable(
+                                route = "PersonChat",
+                                enterTransition = {
+                                    fadeIn() + expandVertically()
+                                },
+                                exitTransition = {
+                                    fadeOut() + shrinkVertically()
+                                }
+                            ){
                                 personChatScreen(
                                     firebaseViewModel = firebaseViewModel,
                                     taskViewModel = taskViewModel,
@@ -240,7 +253,15 @@ class MainActivity : ComponentActivity() {
                                     navController = navController
                                 )
                             }
-                            composable(route = "SearchScreen"){
+                            composable(
+                                route = "SearchScreen",
+                                enterTransition = {
+                                    fadeIn() + slideInVertically()
+                                },
+                                exitTransition = {
+                                    fadeOut() + slideOutVertically()
+                                }
+                            ){
                                 searchScreen(
                                     firebaseViewModel = firebaseViewModel,
                                     taskViewModel = taskViewModel,
