@@ -98,7 +98,12 @@ fun personChatScreen(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(0.5f), blendMode = BlendMode.Overlay)
+            colorFilter =
+            if (isSystemInDarkTheme()){
+                ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(0.5f), blendMode = BlendMode.Overlay)
+            }else{
+                ColorFilter.tint(MaterialTheme.colorScheme.primaryContainer.copy(0.5f), blendMode = BlendMode.Overlay)
+            }
         )
         Column(
             modifier = Modifier
@@ -112,7 +117,8 @@ fun personChatScreen(
                     .fillMaxWidth()
                     .background(
                         color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp)),
+                        shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp)
+                    ),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ),
