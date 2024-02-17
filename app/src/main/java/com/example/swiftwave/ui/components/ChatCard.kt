@@ -42,24 +42,28 @@ fun chatCard(
                 } else {
                     Color.Transparent
                 }
-            ),
+            ).clickable {
+                firebaseViewModel.deleteMessage = messageData
+                taskViewModel.showDeleteMsgDialog = true
+            },
     ){
         Row (
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                start =
-                if (messageData.senderID == firebaseViewModel.userData.userId) {
-                    35.dp
-                } else {
-                    0.dp
-                },
-                end = if (messageData.senderID == firebaseViewModel.userData.userId) {
-                    0.dp
-                } else {
-                    35.dp
-                },
-            ),
+                    start =
+                        if (messageData.senderID == firebaseViewModel.userData.userId) {
+                            35.dp
+                        } else {
+                            0.dp
+                        },
+                    end =
+                        if (messageData.senderID == firebaseViewModel.userData.userId) {
+                            0.dp
+                        } else {
+                            35.dp
+                        },
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement =
             if(messageData.senderID==firebaseViewModel.userData.userId){
@@ -81,13 +85,7 @@ fun chatCard(
                     }
                 )
             ) {
-                Column(
-                    modifier = Modifier
-                        .clickable {
-                            firebaseViewModel.deleteMessage = messageData
-                            taskViewModel.showDeleteMsgDialog = true
-                        },
-                ) {
+                Column{
                     Text(
                         text = messageData.message.toString(),
                         modifier = Modifier
