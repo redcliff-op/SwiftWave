@@ -11,15 +11,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
+import com.example.swiftwave.data.remote.callNotifAPI
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.json.JSONObject
 
 class FirebaseViewModel(
     val userData: UserData
@@ -43,6 +46,7 @@ class FirebaseViewModel(
 
     init {
         addUserToFirestore(userData)
+        getToken()
         viewModelScope.launch {
             delay(5000)
             setupLatestMessageListener()
@@ -189,6 +193,9 @@ class FirebaseViewModel(
             firebase.collection("conversations").document(otherUserId)
                 .collection(userData.userId.toString())
                 .add(messageData)
+                .addOnSuccessListener {
+                    sendNotif(message)
+                }
                 .await()
         }
     }
@@ -315,6 +322,35 @@ class FirebaseViewModel(
                 it.username!!.contains(toSearch,true) || it.mail!!.contains(toSearch, true)
             }
             _searchContacts.emit(filteredList)
+        }
+    }
+
+
+    // FCM
+
+    private fun getToken(){
+        viewModelScope.launch {
+            FirebaseMessaging.getInstance().token.addOnSuccessListener {
+                val token = it.toString()
+                userData.token = token
+                val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                userDocumentRef.update("token", token)
+            }
+        }
+    }
+
+    private fun sendNotif(message: String){
+        viewModelScope.launch {
+            val jsonObject = JSONObject()
+            val notificationObject = JSONObject()
+            val dataObject = JSONObject()
+            notificationObject.put("title",userData.username.toString())
+            notificationObject.put("body",message)
+            dataObject.put("userId",userData.userId.toString())
+            jsonObject.put("notification", notificationObject)
+            jsonObject.put("data", dataObject)
+            jsonObject.put("to", chattingWith?.token)
+            callNotifAPI(jsonObject)
         }
     }
 }
