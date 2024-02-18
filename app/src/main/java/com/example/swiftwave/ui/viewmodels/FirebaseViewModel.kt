@@ -379,4 +379,29 @@ class FirebaseViewModel(
             callNotifAPI(jsonObject)
         }
     }
+
+    fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String) {
+        viewModelScope.launch {
+            val currentUserRef = firebase.collection("conversations")
+                .document(userData.userId.toString())
+                .collection(otherUserId)
+
+            val recipientUserRef = firebase.collection("conversations")
+                .document(otherUserId)
+                .collection(userData.userId.toString())
+
+            val querySnapshot = currentUserRef
+                .whereEqualTo("time", messageTimestamp)
+                .get()
+                .await()
+
+            if (!querySnapshot.isEmpty) {
+                for (document in querySnapshot.documents) {
+                    val messageId = document.id
+                    currentUserRef.document(messageId).update("message", newMessage)
+                    recipientUserRef.document(messageId).update("message", newMessage)
+                }
+            }
+        }
+    }
 }

@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.swiftwave.R
@@ -287,6 +288,19 @@ fun personChatScreen(
                         Row{
                             IconButton(
                                 onClick = {
+                                    firebaseViewModel.text = firebaseViewModel.selectedMessage?.message.toString()
+                                    firebaseViewModel.imageUri = firebaseViewModel.selectedMessage?.image?.toUri()
+                                    taskViewModel.isEditing = true
+                                }
+                            ){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.editicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                            IconButton(
+                                onClick = {
                                     if(firebaseViewModel.selectedMessage?.message.toString().isNotEmpty()){
                                         taskViewModel.copyToClipboard(ctx,firebaseViewModel.selectedMessage?.message.toString())
                                         firebaseViewModel.selectedMessage = null
@@ -340,18 +354,40 @@ fun personChatScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ){
                             Text(
-                                text = "Send Image ?",
+                                text =
+                                    if(taskViewModel.isEditing){
+                                        "Edit Message"
+                                    }else{
+                                        "Send Image?"
+                                    },
                                 fontSize = 20.sp
                             )
-                            IconButton(onClick = {
-                                firebaseViewModel.imageUri = null
-                            }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.deleteimageicon),
-                                    contentDescription =  null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                            if(taskViewModel.isEditing){
+                                IconButton(onClick = {
+                                    firebaseViewModel.imageUri = null
+                                    firebaseViewModel.text = ""
+                                    firebaseViewModel.selectedMessage = null
+                                    taskViewModel.isEditing = false
+                                    taskViewModel.chatOptions = false
+                                }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.crossicon),
+                                        contentDescription =  null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }else{
+                                IconButton(onClick = {
+                                    firebaseViewModel.imageUri = null
+                                }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.deleteimageicon),
+                                        contentDescription =  null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.size(10.dp))
@@ -414,19 +450,30 @@ fun personChatScreen(
                 AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
                     IconButton(
                         onClick = {
-                            firebaseViewModel.uploadImageAndSendMessage(
-                                firebaseViewModel.chattingWith?.userId.toString(),
-                                firebaseViewModel.text
-                            )
-                            if(firebaseViewModel.imageUri!=null){
-                                Toast.makeText(
-                                    ctx,
-                                    "Image will be Uploaded and Sent",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            if(taskViewModel.isEditing){
+                                firebaseViewModel.editMessage(
+                                    firebaseViewModel.chattingWith?.userId.toString(),
+                                    firebaseViewModel.selectedMessage?.time!!,
+                                    firebaseViewModel.text
+                                )
+                            }else{
+                                firebaseViewModel.uploadImageAndSendMessage(
+                                    firebaseViewModel.chattingWith?.userId.toString(),
+                                    firebaseViewModel.text
+                                )
+                                if(firebaseViewModel.imageUri!=null){
+                                    Toast.makeText(
+                                        ctx,
+                                        "Image will be Uploaded and Sent",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                             firebaseViewModel.text = ""
                             firebaseViewModel.imageUri = null
+                            taskViewModel.isEditing = false
+                            taskViewModel.chatOptions = false
+                            firebaseViewModel.selectedMessage = null
                         }
                     ){
                         Icon(
