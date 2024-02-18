@@ -42,19 +42,19 @@ fun chatCard(
             .padding(vertical = 2.dp)
             .background(
                 color =
-                if (firebaseViewModel.deleteMessage?.time.toString() == messageData.time.toString()) {
+                if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString()) {
                     MaterialTheme.colorScheme.onPrimary
                 } else {
                     Color.Transparent
                 }
             ).combinedClickable(
                 onLongClick = {
-                    firebaseViewModel.deleteMessage = messageData
+                    firebaseViewModel.selectedMessage = messageData
                     taskViewModel.chatOptions = true
                 },
                 onClick = {
                     taskViewModel.chatOptions = false
-                    firebaseViewModel.deleteMessage = null
+                    firebaseViewModel.selectedMessage = null
                 }
             )
     ){

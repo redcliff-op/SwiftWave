@@ -36,7 +36,7 @@ class FirebaseViewModel(
     var imageString by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
-    var deleteMessage by mutableStateOf<MessageData?>(null)
+    var selectedMessage by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()

@@ -1,12 +1,17 @@
 package com.example.swiftwave.ui.viewmodels
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.R
 import com.example.swiftwave.data.model.bottomNavBarItem
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -36,5 +41,13 @@ class TaskViewModel : ViewModel(){
 
         val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         return dateFormat.format(calendar.time)
+    }
+
+    fun copyToClipboard(context: Context, text: String) {
+        viewModelScope.launch {
+            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = ClipData.newPlainText("text", text)
+            clipboardManager.setPrimaryClip(clipData)
+        }
     }
 }

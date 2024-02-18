@@ -273,7 +273,7 @@ fun personChatScreen(
                         IconButton(
                             onClick = {
                                 taskViewModel.chatOptions = false
-                                firebaseViewModel.deleteMessage = null
+                                firebaseViewModel.selectedMessage = null
                             }
                         ){
                             Icon(
@@ -285,17 +285,32 @@ fun personChatScreen(
                             )
                         }
                         Row{
-                           IconButton(
+                            IconButton(
+                                onClick = {
+                                    if(firebaseViewModel.selectedMessage?.message.toString().isNotEmpty()){
+                                        taskViewModel.copyToClipboard(ctx,firebaseViewModel.selectedMessage?.message.toString())
+                                        firebaseViewModel.selectedMessage = null
+                                        taskViewModel.chatOptions = false
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.copyicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                            IconButton(
                                onClick = {
                                    taskViewModel.showDeleteMsgDialog = true
                                }
-                           ){
+                            ){
                                Icon(
                                    painter = painterResource(id = R.drawable.deleteimageicon),
                                    contentDescription = null,
                                    modifier = Modifier.size(25.dp)
                                )
-                           }
+                            }
                         }
                     }
                 }

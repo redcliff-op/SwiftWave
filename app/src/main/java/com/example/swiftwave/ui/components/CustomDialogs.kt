@@ -109,7 +109,7 @@ fun DeleteMessageDialog(
     Dialog(
         onDismissRequest = {
             taskViewModel.showDeleteMsgDialog = false
-            firebaseViewModel.deleteMessage = null
+            firebaseViewModel.selectedMessage = null
             taskViewModel.chatOptions = false
         }
     ){
@@ -121,7 +121,7 @@ fun DeleteMessageDialog(
                 Button(
                     onClick = {
                         taskViewModel.showDeleteMsgDialog = false
-                        firebaseViewModel.deleteMessage = null
+                        firebaseViewModel.selectedMessage = null
                         taskViewModel.chatOptions = false
                     },
                 ) {
@@ -133,10 +133,10 @@ fun DeleteMessageDialog(
                     onClick = {
                         firebaseViewModel.deleteMessage(
                             otherUserId = firebaseViewModel.chattingWith?.userId.toString(),
-                            messageData = firebaseViewModel.deleteMessage!!
+                            messageData = firebaseViewModel.selectedMessage!!
                         )
                         taskViewModel.showDeleteMsgDialog = false
-                        firebaseViewModel.deleteMessage = null
+                        firebaseViewModel.selectedMessage = null
                     },
                 ) {
                     Text(text = "Delete")
