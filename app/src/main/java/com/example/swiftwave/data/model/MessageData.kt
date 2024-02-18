@@ -4,4 +4,5 @@ data class MessageData(
     val message : String? = "",
     val senderID : String? = "",
     val time : Long ? = 0,
+    val image : String? = null,
 )

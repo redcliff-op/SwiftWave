@@ -1,8 +1,7 @@
 package com.example.swiftwave.ui.viewmodels
 
-import android.content.ContentValues.TAG
 import android.content.Context
-import android.util.Log
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,17 +11,20 @@ import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.data.remote.callNotifAPI
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
+import java.util.UUID
 
 class FirebaseViewModel(
     val userData: UserData
@@ -30,6 +32,8 @@ class FirebaseViewModel(
 
     var chattingWith by mutableStateOf<UserData?>(null)
     var text by mutableStateOf("")
+    var imageUri by mutableStateOf<Uri?>(null)
+    var imageString by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
     var deleteMessage by mutableStateOf<MessageData?>(null)
@@ -102,7 +106,6 @@ class FirebaseViewModel(
                 .limit(1)
                 .addSnapshotListener { snapshots, error ->
                     if (error != null) {
-                        Log.e(TAG, "Error fetching latest message", error)
                         return@addSnapshotListener
                     }
                     loadChatListUsers()
@@ -181,10 +184,10 @@ class FirebaseViewModel(
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String) {
+    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null) {
         viewModelScope.launch{
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData.userId.toString(), currentTime)
+            val messageData = MessageData(message, userData.userId.toString(), currentTime, imageUrl)
             firebase.collection("conversations").document(userData.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
@@ -194,9 +197,28 @@ class FirebaseViewModel(
                 .collection(userData.userId.toString())
                 .add(messageData)
                 .addOnSuccessListener {
-                    sendNotif(message)
+                    if (imageUrl!=null && message.isEmpty()) {
+                        sendNotif("Image")
+                    }else{
+                        sendNotif(message)
+                    }
                 }
                 .await()
+        }
+    }
+
+    fun uploadImageAndSendMessage(otherUserId: String, message: String) {
+        if (imageUri != null) {
+            val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
+            val uploadTask = storageRef.putFile(imageUri!!)
+            uploadTask.addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    val imageUrl = uri.toString()
+                    sendMessage(otherUserId, imageUrl = imageUrl, message = message)
+                }
+            }
+        } else {
+            sendMessage(otherUserId, message = message)
         }
     }
 
@@ -220,7 +242,6 @@ class FirebaseViewModel(
             .collection(chattingWith?.userId.toString())
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    Log.e(TAG, "Error fetching messages", error)
                     return@addSnapshotListener
                 }
                 getMessagesWithUser()
@@ -309,6 +330,11 @@ class FirebaseViewModel(
             }
             for (document in receiverMessageRef.documents) {
                 document.reference.delete()
+            }
+
+            messageData.image?.let { imageUrl ->
+                val storageRef = Firebase.storage.getReferenceFromUrl(imageUrl)
+                storageRef.delete()
             }
         }
     }

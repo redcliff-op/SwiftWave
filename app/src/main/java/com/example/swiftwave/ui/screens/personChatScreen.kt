@@ -1,5 +1,9 @@
 package com.example.swiftwave.ui.screens
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +46,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,6 +56,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.DeleteMessageDialog
+import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.chatCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -64,6 +71,11 @@ fun personChatScreen(
 ){
     firebaseViewModel.getMessagesWithUser()
     val chatList = firebaseViewModel.chatMessages.collectAsState()
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = {uri -> firebaseViewModel.imageUri = uri}
+    )
+    val ctx = LocalContext.current
     DisposableEffect(Unit){
         taskViewModel.showNavBar = false
         onDispose {
@@ -79,6 +91,13 @@ fun personChatScreen(
             taskViewModel = taskViewModel,
             firebaseViewModel = firebaseViewModel,
             navController = navController
+        )
+    }
+
+    if(taskViewModel.showImageDialog){
+        ImageDialog(
+            taskViewModel = taskViewModel,
+            image = firebaseViewModel.imageString
         )
     }
 
@@ -237,6 +256,41 @@ fun personChatScreen(
                     )
                 }
             }
+            AnimatedVisibility(visible = firebaseViewModel.imageUri!=null){
+                ElevatedCard{
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text(
+                                text = "Send Image ?",
+                                fontSize = 20.sp
+                            )
+                            IconButton(onClick = {
+                                firebaseViewModel.imageUri = null
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.deleteimageicon),
+                                    contentDescription =  null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.size(10.dp))
+                        AsyncImage(
+                            model = firebaseViewModel.imageUri,
+                            contentDescription = null,
+                            modifier = Modifier.size(200.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
+            }
             Row (
                 modifier = Modifier.fillMaxWidth(0.9f),
                 verticalAlignment = Alignment.CenterVertically,
@@ -261,19 +315,50 @@ fun personChatScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
                         unfocusedBorderColor = Color.Transparent,
-                    )
+                    ),
+                    trailingIcon = {
+                        AnimatedVisibility(visible = firebaseViewModel.imageUri==null) {
+                            IconButton(
+                                onClick = {
+                                    imagePicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                modifier = Modifier.padding(end = 10.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.sendimageicon),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(30.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 )
-                AnimatedVisibility(visible = firebaseViewModel.text.isNotEmpty()) {
+                AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
                     IconButton(
                         onClick = {
-                            firebaseViewModel.sendMessage(firebaseViewModel.chattingWith?.userId.toString(),firebaseViewModel.text.trim())
+                            firebaseViewModel.uploadImageAndSendMessage(
+                                firebaseViewModel.chattingWith?.userId.toString(),
+                                firebaseViewModel.text
+                            )
+                            if(firebaseViewModel.imageUri!=null){
+                                Toast.makeText(
+                                    ctx,
+                                    "Image will be Uploaded and Sent",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                             firebaseViewModel.text = ""
+                            firebaseViewModel.imageUri = null
                         }
                     ){
                         Icon(
                             painter = painterResource(id = R.drawable.sendicon),
                             contentDescription = null,
-                            modifier = Modifier.size(35.dp),
+                            modifier = Modifier.size(30.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }

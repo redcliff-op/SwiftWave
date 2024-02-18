@@ -1,14 +1,14 @@
 package com.example.swiftwave.ui.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -18,9 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -37,7 +38,7 @@ fun chatCard(
             .padding(vertical = 2.dp)
             .background(
                 color =
-                if (firebaseViewModel.deleteMessage?.message.toString() == messageData.message.toString()) {
+                if (firebaseViewModel.deleteMessage?.time.toString() == messageData.time.toString()) {
                     MaterialTheme.colorScheme.onPrimary
                 } else {
                     Color.Transparent
@@ -85,23 +86,55 @@ fun chatCard(
                     }
                 )
             ) {
-                Column{
-                    Text(
-                        text = messageData.message.toString(),
-                        modifier = Modifier
-                            .padding(
-                                start = 10.dp,
-                                top = 10.dp,
-                                end = 10.dp
-                            ),
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                Column(
+                    modifier =
+                        if(messageData.image!=null){
+                            Modifier.width(200.dp)
+                        }else{
+                            Modifier
+                        }
+                ){
+                    if(messageData.image!=null){
+                        AsyncImage(
+                            model = messageData.image,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .padding(
+                                    start = 10.dp,
+                                    end = 10.dp,
+                                    top = 10.dp,
+                                ).clickable {
+                                    firebaseViewModel.imageString = messageData.image
+                                    taskViewModel.showImageDialog = !taskViewModel.showImageDialog
+                                },
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    if(messageData.message?.isNotEmpty() == true){
+                        Text(
+                            text = messageData.message.toString(),
+                            modifier = Modifier
+                                .padding(
+                                    start = 10.dp,
+                                    top = 5.dp,
+                                    end = 5.dp
+                                ),
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                     Row (
                         modifier = Modifier
                             .padding(
                                 bottom = 10.dp,
-                                start = 10.dp
+                                start = 10.dp,
+                                top =
+                                    if(messageData.image!=null && messageData.message.toString().isEmpty()){
+                                        5.dp
+                                    }else{
+                                        0.dp
+                                    }
                             )
                     ){
                         Text(

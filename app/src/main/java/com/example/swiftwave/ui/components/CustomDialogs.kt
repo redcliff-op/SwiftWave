@@ -18,12 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
@@ -137,6 +139,24 @@ fun DeleteMessageDialog(
                     Text(text = "Delete")
                 }
             }
+        )
+    }
+}
+
+@Composable
+fun ImageDialog(
+    taskViewModel : TaskViewModel,
+    image: String
+){
+    Dialog(
+        onDismissRequest = {
+            taskViewModel.showImageDialog = false
+        },
+    ){
+        AsyncImage(
+            model = image,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
         )
     }
 }
