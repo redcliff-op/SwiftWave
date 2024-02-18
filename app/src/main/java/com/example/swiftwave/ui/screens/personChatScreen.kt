@@ -23,11 +23,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -149,9 +152,14 @@ fun personChatScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(20.dp),
+                        .padding(
+                            top = 10.dp,
+                            bottom = 20.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ){
                     IconButton(
                         onClick = {
@@ -161,38 +169,46 @@ fun personChatScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.backicon),
                             contentDescription = null,
-                            modifier = Modifier.size(35.dp)
+                            modifier = Modifier.size(25.dp)
                         )
                     }
-                    AsyncImage(
-                        model = firebaseViewModel.chattingWith?.profilePictureUrl,
-                        contentDescription = null,
+                    Row (
                         modifier = Modifier
-                            .size(50.dp)
-                            .clip(shape = RoundedCornerShape(20.dp))
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = firebaseViewModel.chattingWith?.username.toString(),
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f),
-                        maxLines =
-                        if(taskViewModel.expandedPersonInfo){
-                            2
-                        }else{
-                            1
-                        },
-                        overflow = TextOverflow.Ellipsis
-                    )
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        AsyncImage(
+                            model = firebaseViewModel.chattingWith?.profilePictureUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(shape = CircleShape)
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(
+                            text = firebaseViewModel.chattingWith?.username.toString(),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f),
+                            maxLines =
+                            if(taskViewModel.expandedPersonInfo){
+                                2
+                            }else{
+                                1
+                            },
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     IconButton(onClick = {
                         taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.MoreVert,
                             contentDescription = null,
-                            modifier = Modifier.size(35.dp)
+                            modifier = Modifier.size(25.dp)
                         )
                     }
                 }
@@ -207,14 +223,14 @@ fun personChatScreen(
                     ) {
                         Text(
                             text = "Details",
-                            fontSize = 25.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(modifier = Modifier.size(10.dp))
+                        Spacer(modifier = Modifier.size(5.dp))
                         Text(
                             text = firebaseViewModel.chattingWith?.mail.toString(),
-                            fontSize = 20.sp,
+                            fontSize = 17.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -224,10 +240,10 @@ fun personChatScreen(
                             color = Color.Gray
                         )
                         if(firebaseViewModel.chattingWith?.bio!!.isNotEmpty()){
-                            Spacer(modifier = Modifier.size(10.dp))
+                            Spacer(modifier = Modifier.size(5.dp))
                             Text(
                                 text = firebaseViewModel.chattingWith?.bio.toString(),
-                                fontSize = 20.sp,
+                                fontSize = 17.sp,
                                 maxLines = 5,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -237,7 +253,50 @@ fun personChatScreen(
                                 color = Color.Gray
                             )
                         }
-                        Spacer(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.size(15.dp))
+                    }
+                }
+                AnimatedVisibility(taskViewModel.chatOptions) {
+                    Divider(color = MaterialTheme.colorScheme.secondary)
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = 10.dp,
+                                end = 10.dp,
+                                bottom = 10.dp,
+                                top = 5.dp
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        IconButton(
+                            onClick = {
+                                taskViewModel.chatOptions = false
+                                firebaseViewModel.deleteMessage = null
+                            }
+                        ){
+                            Icon(
+                                painter = painterResource(id = R.drawable.backicon),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .rotate(90f)
+                            )
+                        }
+                        Row{
+                           IconButton(
+                               onClick = {
+                                   taskViewModel.showDeleteMsgDialog = true
+                               }
+                           ){
+                               Icon(
+                                   painter = painterResource(id = R.drawable.deleteimageicon),
+                                   contentDescription = null,
+                                   modifier = Modifier.size(25.dp)
+                               )
+                           }
+                        }
                     }
                 }
             }

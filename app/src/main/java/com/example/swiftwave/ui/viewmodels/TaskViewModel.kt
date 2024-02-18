@@ -20,6 +20,7 @@ class TaskViewModel : ViewModel(){
     var showDialog by mutableStateOf(false)
     var showDeleteMsgDialog by mutableStateOf(false)
     var showImageDialog by mutableStateOf(false)
+    var chatOptions by mutableStateOf(false)
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {
         return listOf(
             bottomNavBarItem("Chats", R.drawable.chaticon),

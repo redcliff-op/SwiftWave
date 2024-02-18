@@ -1,7 +1,9 @@
 package com.example.swiftwave.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -26,6 +29,7 @@ import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun chatCard(
     messageData: MessageData,
@@ -43,10 +47,16 @@ fun chatCard(
                 } else {
                     Color.Transparent
                 }
-            ).clickable {
-                firebaseViewModel.deleteMessage = messageData
-                taskViewModel.showDeleteMsgDialog = true
-            },
+            ).combinedClickable(
+                onLongClick = {
+                    firebaseViewModel.deleteMessage = messageData
+                    taskViewModel.chatOptions = true
+                },
+                onClick = {
+                    taskViewModel.chatOptions = false
+                    firebaseViewModel.deleteMessage = null
+                }
+            )
     ){
         Row (
             modifier = Modifier
@@ -76,7 +86,7 @@ fun chatCard(
             Card(
                 modifier = Modifier
                     .padding(5.dp),
-                shape = RoundedCornerShape(15.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if(messageData.senderID==firebaseViewModel.userData.userId){
@@ -118,30 +128,31 @@ fun chatCard(
                                 .padding(
                                     start = 10.dp,
                                     top = 5.dp,
-                                    end = 5.dp
+                                    end = 10.dp
                                 ),
-                            fontSize = 20.sp,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     Row (
                         modifier = Modifier
                             .padding(
-                                bottom = 10.dp,
+                                bottom = 5.dp,
                                 start = 10.dp,
                                 top =
                                     if(messageData.image!=null && messageData.message.toString().isEmpty()){
                                         5.dp
                                     }else{
                                         0.dp
-                                    }
+                                    },
                             )
                     ){
                         Text(
                             text = taskViewModel.getTime(messageData.time?.toLong() ?: 0),
                             color = Color.Gray,
                             modifier = Modifier.padding(end = 10.dp),
-                            fontSize = 12.sp
+                            fontSize = 12.sp,
                         )
                     }
                 }

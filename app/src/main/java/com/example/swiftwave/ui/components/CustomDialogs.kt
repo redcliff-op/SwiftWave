@@ -109,6 +109,8 @@ fun DeleteMessageDialog(
     Dialog(
         onDismissRequest = {
             taskViewModel.showDeleteMsgDialog = false
+            firebaseViewModel.deleteMessage = null
+            taskViewModel.chatOptions = false
         }
     ){
         AlertDialog(
@@ -120,6 +122,7 @@ fun DeleteMessageDialog(
                     onClick = {
                         taskViewModel.showDeleteMsgDialog = false
                         firebaseViewModel.deleteMessage = null
+                        taskViewModel.chatOptions = false
                     },
                 ) {
                     Text(text = "Cancel")
