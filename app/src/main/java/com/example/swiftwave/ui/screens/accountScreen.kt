@@ -1,5 +1,8 @@
 package com.example.swiftwave.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,21 +25,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.swiftwave.R
 import com.example.swiftwave.auth.UserData
+import com.example.swiftwave.ui.components.SetProfilePictureDialog
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
+import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
 @Composable
 fun accountScreen(
     userData: UserData?,
     onSignOut: () -> Unit,
     navController: NavController,
-    firebaseViewModel: FirebaseViewModel
+    firebaseViewModel: FirebaseViewModel,
+    taskViewModel: TaskViewModel
 ){
+    if(firebaseViewModel.imageUri!=null && taskViewModel.showProfilePictureDialog){
+        SetProfilePictureDialog(
+            firebaseViewModel = firebaseViewModel,
+            taskViewModel = taskViewModel
+        )
+    }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = {uri -> firebaseViewModel.imageUri = uri}
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,33 +71,46 @@ fun accountScreen(
         )
         Spacer(modifier = Modifier.size(20.dp))
         Row (
-            modifier = Modifier.fillMaxWidth(0.9f),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.SpaceBetween
         ){
-            AsyncImage(
-                model = userData?.profilePictureUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(shape = CircleShape)
-            )
-            Spacer(modifier = Modifier.size(20.dp))
-            Column(
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = userData?.username.toString(),
-                    fontSize = 20.sp,
+            Row {
+                AsyncImage(
+                    model = firebaseViewModel.profilePicture,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(shape = CircleShape)
                 )
-                Text(
-                    text = "Your Name",
-                    fontSize = 15.sp,
-                    color = Color.Gray
+                Spacer(modifier = Modifier.size(20.dp))
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = userData?.username.toString(),
+                        fontSize = 20.sp,
+                    )
+                    Text(
+                        text = "Your Name",
+                        fontSize = 15.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            IconButton(onClick = {
+                imagePicker.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+                taskViewModel.showProfilePictureDialog = true
+            }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.profilepicediticon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
                 )
             }
-
         }
         Spacer(modifier = Modifier.size(20.dp))
         Text(

@@ -25,6 +25,7 @@ class TaskViewModel : ViewModel(){
     var showDialog by mutableStateOf(false)
     var showDeleteMsgDialog by mutableStateOf(false)
     var showImageDialog by mutableStateOf(false)
+    var showProfilePictureDialog by mutableStateOf(false)
     var chatOptions by mutableStateOf(false)
     var isEditing by mutableStateOf(false)
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {

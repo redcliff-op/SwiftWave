@@ -38,6 +38,7 @@ class FirebaseViewModel(
     var Bio by mutableStateOf("")
     var selectedMessage by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
+    var profilePicture by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -127,6 +128,7 @@ class FirebaseViewModel(
             }else{
                 val currentUser = userQuery.toObject(UserData::class.java)
                 userData.bio = currentUser?.bio.toString()
+                profilePicture = currentUser?.profilePictureUrl.toString()
                 Bio = currentUser?.bio.toString()
             }
         }
@@ -403,5 +405,38 @@ class FirebaseViewModel(
                 }
             }
         }
+    }
+
+    fun updateProfilePic() {
+        viewModelScope.launch {
+            if (imageUri != null && userData.userId!!.isNotEmpty()) {
+                val storageRef = Firebase.storage.reference.child("profilePics/${userData.userId}/${UUID.randomUUID()}")
+                val allProfilePics = Firebase.storage.reference.child("profilePics/${userData.userId}")
+                allProfilePics.listAll()
+                    .addOnSuccessListener { listResult ->
+                        listResult.items.forEach { item ->
+                            item.delete()
+                        }
+                    }
+                val uploadTask = storageRef.putFile(imageUri!!)
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+                    storageRef.downloadUrl
+                }.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val downloadUri = task.result
+                        val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                        userDocumentRef.update("profilePictureUrl", downloadUri.toString())
+                        profilePicture = downloadUri.toString()
+                    }
+                }
+            }
+            imageUri = null
+        }
+
     }
 }

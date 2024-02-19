@@ -162,7 +162,8 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     navController = navController,
-                                    firebaseViewModel = firebaseViewModel
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel
                                 )
                             }
                             composable(route = "Settings"){
