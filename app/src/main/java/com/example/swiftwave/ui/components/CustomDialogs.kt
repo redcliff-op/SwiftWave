@@ -155,18 +155,41 @@ fun DeleteMessageDialog(
 @Composable
 fun ImageDialog(
     taskViewModel : TaskViewModel,
-    image: String
+    firebaseViewModel: FirebaseViewModel
 ){
     Dialog(
         onDismissRequest = {
             taskViewModel.showImageDialog = false
         },
-    ){
-        AsyncImage(
-            model = image,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
         )
+    ){
+        ElevatedCard {
+            Column (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        top = 30.dp,
+                        bottom = 30.dp
+                    ),
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                AsyncImage(
+                    model = firebaseViewModel.imageString,
+                    contentDescription = null,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.size(20.dp))
+                ElevatedButton(onClick = {taskViewModel.showImageDialog = false}) {
+                    Text(
+                        text = "Back",
+                        fontSize = 20.sp
+                    )
+                }
+            }
+        }
     }
 }
 
