@@ -286,18 +286,20 @@ fun personChatScreen(
                             )
                         }
                         Row{
-                            IconButton(
-                                onClick = {
-                                    firebaseViewModel.text = firebaseViewModel.selectedMessage?.message.toString()
-                                    firebaseViewModel.imageUri = firebaseViewModel.selectedMessage?.image?.toUri()
-                                    taskViewModel.isEditing = true
+                            AnimatedVisibility(firebaseViewModel.selectedMessage?.senderID == firebaseViewModel.userData.userId){
+                                IconButton(
+                                    onClick = {
+                                        firebaseViewModel.text = firebaseViewModel.selectedMessage?.message.toString()
+                                        firebaseViewModel.imageUri = firebaseViewModel.selectedMessage?.image?.toUri()
+                                        taskViewModel.isEditing = true
+                                    }
+                                ){
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.editicon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(25.dp)
+                                    )
                                 }
-                            ){
-                                Icon(
-                                    painter = painterResource(id = R.drawable.editicon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(25.dp)
-                                )
                             }
                             IconButton(
                                 onClick = {
