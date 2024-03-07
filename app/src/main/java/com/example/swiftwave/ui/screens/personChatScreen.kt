@@ -259,7 +259,15 @@ fun personChatScreen(
                     }
                 }
                 AnimatedVisibility(taskViewModel.chatOptions) {
-                    Divider(color = MaterialTheme.colorScheme.secondary)
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ){
+                        Divider(
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        )
+                    }
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
