@@ -38,6 +38,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.swiftwave.auth.GoogleAuthUiClient
 import com.example.swiftwave.ui.screens.accountScreen
@@ -117,8 +118,9 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         floatingActionButton = {
+                            val currentScreen by navController.currentBackStackEntryAsState()
                             AnimatedVisibility(
-                                visible = taskViewModel.showNavBar,
+                                visible = taskViewModel.showNavBar && (currentScreen?.destination?.route.equals("Chats")),
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut() + slideOutVertically()
                             ){
