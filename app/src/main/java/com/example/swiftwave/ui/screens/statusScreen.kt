@@ -43,8 +43,7 @@ import com.example.swiftwave.ui.viewmodels.TaskViewModel
 @Composable
 fun statusScreen(
     firebaseViewModel: FirebaseViewModel,
-    taskViewModel: TaskViewModel,
-    navController: NavController
+    taskViewModel: TaskViewModel
 ){
     firebaseViewModel.loadChatListUsers()
     val userList = firebaseViewModel.chatListUsers.collectAsState(initial = emptyList())
@@ -61,8 +60,7 @@ fun statusScreen(
     if(taskViewModel.showImageDialog){
         ImageDialog(
             taskViewModel = taskViewModel,
-            firebaseViewModel = firebaseViewModel,
-            navController = navController
+            firebaseViewModel = firebaseViewModel
         )
     }
     Column(
@@ -121,6 +119,8 @@ fun statusScreen(
                                 firebaseViewModel.chattingWith = firebaseViewModel.userData
                                 firebaseViewModel.imageString = firebaseViewModel.userData.status.toString()
                                 taskViewModel.showImageDialog = true
+                                taskViewModel.showDeleteStatusOption = true
+                                firebaseViewModel.imageDialogProfilePicture = firebaseViewModel.profilePicture
                             }
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,

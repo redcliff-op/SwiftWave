@@ -118,6 +118,11 @@ fun chatCard(
                                     firebaseViewModel.imageString = messageData.image
                                     firebaseViewModel.sentBy = messageData.senderID.toString()
                                     taskViewModel.showImageDialog = !taskViewModel.showImageDialog
+                                    if(firebaseViewModel.sentBy == firebaseViewModel.userData.userId){
+                                        firebaseViewModel.imageDialogProfilePicture = firebaseViewModel.profilePicture
+                                    }else{
+                                        firebaseViewModel.imageDialogProfilePicture = firebaseViewModel.chattingWith?.profilePictureUrl.toString()
+                                    }
                                 },
                             contentScale = ContentScale.Crop
                         )

@@ -29,6 +29,7 @@ class TaskViewModel : ViewModel(){
     var chatOptions by mutableStateOf(false)
     var isEditing by mutableStateOf(false)
     var isUploadingStatus by mutableStateOf(false)
+    var showDeleteStatusOption by mutableStateOf(false)
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {
         return listOf(
             bottomNavBarItem("Chats", R.drawable.chaticon),

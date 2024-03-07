@@ -101,8 +101,7 @@ fun personChatScreen(
     if(taskViewModel.showImageDialog){
         ImageDialog(
             taskViewModel = taskViewModel,
-            firebaseViewModel = firebaseViewModel,
-            navController = navController
+            firebaseViewModel = firebaseViewModel
         )
     }
 

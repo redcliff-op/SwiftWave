@@ -52,6 +52,8 @@ fun StatusCard(
             onClick = {
                 firebaseViewModel.chattingWith = userData
                 firebaseViewModel.imageString = userData.status.toString()
+                firebaseViewModel.imageDialogProfilePicture = userData.profilePictureUrl.toString()
+                firebaseViewModel.chattingWith = userData
                 taskViewModel.showImageDialog = true
                 viewdList.value.add(userData.userId.toString())
                 firebaseViewModel._viewedStatus.value = viewdList.value

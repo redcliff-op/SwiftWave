@@ -166,12 +166,13 @@ fun DeleteMessageDialog(
 fun ImageDialog(
     taskViewModel : TaskViewModel,
     firebaseViewModel: FirebaseViewModel,
-    navController: NavController
 ){
     val ctx = LocalContext.current
     Dialog(
         onDismissRequest = {
             taskViewModel.showImageDialog = false
+            taskViewModel.showDeleteStatusOption = false
+            firebaseViewModel.sentBy = ""
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
@@ -191,6 +192,8 @@ fun ImageDialog(
                 IconButton(
                     onClick = {
                         taskViewModel.showImageDialog = false
+                        taskViewModel.showDeleteStatusOption = false
+                        firebaseViewModel.sentBy = ""
                     }
                 ){
                     Icon(
@@ -209,7 +212,7 @@ fun ImageDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     AsyncImage(
-                        model = firebaseViewModel.chattingWith?.profilePictureUrl,
+                        model = firebaseViewModel.imageDialogProfilePicture,
                         contentDescription = null,
                         modifier = Modifier
                             .size(40.dp)
@@ -235,7 +238,7 @@ fun ImageDialog(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                if(navController.currentBackStackEntry?.destination?.route.equals("Status")){
+                if(taskViewModel.showDeleteStatusOption){
                     IconButton(onClick = {
                         firebaseViewModel.deleteStatus(firebaseViewModel.userData)
                         taskViewModel.showImageDialog = false;
@@ -244,6 +247,8 @@ fun ImageDialog(
                             "Status Deleted",
                             Toast.LENGTH_SHORT
                         ).show()
+                        taskViewModel.showDeleteStatusOption = false
+                        firebaseViewModel.sentBy = ""
                     }) {
                         Icon(
                             imageVector = Icons.Rounded.Delete,

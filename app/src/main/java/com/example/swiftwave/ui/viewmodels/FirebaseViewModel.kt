@@ -42,6 +42,7 @@ class FirebaseViewModel(
     var profilePicture by mutableStateOf("")
     var curStatus by mutableStateOf("")
     var sentBy by mutableStateOf("")
+    var imageDialogProfilePicture by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
