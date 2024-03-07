@@ -285,7 +285,11 @@ fun SetProfilePictureAndStatusDialog(
             usePlatformDefaultWidth = false
         )
     ) {
-        ElevatedCard {
+        ElevatedCard(
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Black
+            )
+        ){
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -324,6 +328,7 @@ fun SetProfilePictureAndStatusDialog(
                             fontSize = 20.sp
                         )
                     }
+                    Spacer(modifier = Modifier.size(15.dp))
                     ElevatedButton(onClick = {
                         if(taskViewModel.isUploadingStatus){
                             firebaseViewModel.setStatus()
