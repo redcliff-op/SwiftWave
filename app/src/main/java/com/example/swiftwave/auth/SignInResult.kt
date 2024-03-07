@@ -16,5 +16,7 @@ data class UserData(
     val favorites: List<String>? = emptyList(),
     var bio: String? = "",
     var latestMessage: MessageData? = null,
-    var token : String? = ""
+    var token : String? = "",
+    var status: String? = "",
+    var statusExpiry: Long? = 0
 )

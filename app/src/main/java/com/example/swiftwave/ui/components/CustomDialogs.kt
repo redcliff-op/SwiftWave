@@ -9,29 +9,38 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.swiftwave.R
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
@@ -142,6 +151,7 @@ fun DeleteMessageDialog(
                             messageData = firebaseViewModel.selectedMessage!!
                         )
                         taskViewModel.showDeleteMsgDialog = false
+                        taskViewModel.chatOptions = false
                         firebaseViewModel.selectedMessage = null
                     },
                 ) {
@@ -155,8 +165,10 @@ fun DeleteMessageDialog(
 @Composable
 fun ImageDialog(
     taskViewModel : TaskViewModel,
-    firebaseViewModel: FirebaseViewModel
+    firebaseViewModel: FirebaseViewModel,
+    navController: NavController
 ){
+    val ctx = LocalContext.current
     Dialog(
         onDismissRequest = {
             taskViewModel.showImageDialog = false
@@ -165,43 +177,108 @@ fun ImageDialog(
             usePlatformDefaultWidth = false
         )
     ){
-        ElevatedCard {
+        ElevatedCard(
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Black
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        taskViewModel.showImageDialog = false
+                    }
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.backicon),
+                        contentDescription = null,
+                        modifier = Modifier.size(25.dp),
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.size(10.dp))
+                Row (
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    AsyncImage(
+                        model = firebaseViewModel.chattingWith?.profilePictureUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(shape = CircleShape)
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Text(
+                        text = if(firebaseViewModel.chattingWith?.userId == firebaseViewModel.userData.userId || firebaseViewModel.sentBy == firebaseViewModel.userData.userId){
+                            "You"
+                        }else {
+                            firebaseViewModel.chattingWith?.username.toString()
+                        },
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.weight(1f),
+                        maxLines =
+                        if(taskViewModel.expandedPersonInfo){
+                            2
+                        }else{
+                            1
+                        },
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if(navController.currentBackStackEntry?.destination?.route.equals("Status")){
+                    IconButton(onClick = {
+                        firebaseViewModel.deleteStatus(firebaseViewModel.userData)
+                        taskViewModel.showImageDialog = false;
+                        Toast.makeText(
+                            ctx,
+                            "Status Deleted",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.size(10.dp))
             Column (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        top = 30.dp,
-                        bottom = 30.dp
-                    ),
+                    .padding(bottom = 30.dp),
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 AsyncImage(
                     model = firebaseViewModel.imageString,
                     contentDescription = null,
-                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.size(20.dp))
-                ElevatedButton(onClick = {taskViewModel.showImageDialog = false}) {
-                    Text(
-                        text = "Back",
-                        fontSize = 20.sp
-                    )
-                }
             }
         }
     }
 }
 
 @Composable
-fun SetProfilePictureDialog(
+fun SetProfilePictureAndStatusDialog(
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
     val ctx = LocalContext.current
     Dialog(
         onDismissRequest = {
-            taskViewModel.showProfilePictureDialog = false
+            taskViewModel.showSetProfilePictureAndStatusDialog = false
+            taskViewModel.isUploadingStatus = false
             firebaseViewModel.imageUri = null
         },
         properties = DialogProperties(
@@ -219,19 +296,16 @@ fun SetProfilePictureDialog(
                     ),
                 verticalArrangement = Arrangement.SpaceAround
             ){
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Set Profile Picture?",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 30.sp
-                    )
-                    Text(
-                        text = "Images with 1:1 Aspect Ratio Are Preferred"
-                    )
-                }
+                Text(
+                    text =
+                    if(taskViewModel.isUploadingStatus){
+                        "Set Status ?"
+                    }else{
+                     "Update Profile Picture?"
+                    },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp
+                )
                 Spacer(modifier = Modifier.size(10.dp))
                 AsyncImage(
                     model = firebaseViewModel.imageUri,
@@ -241,9 +315,9 @@ fun SetProfilePictureDialog(
                 Spacer(modifier = Modifier.size(10.dp))
                 Row {
                     ElevatedButton(onClick = {
-                        taskViewModel.showProfilePictureDialog = false
+                        taskViewModel.showSetProfilePictureAndStatusDialog = false
                         firebaseViewModel.imageUri = null
-
+                        taskViewModel.isUploadingStatus = false
                     }) {
                         Text(
                             text = "Cancel",
@@ -251,14 +325,23 @@ fun SetProfilePictureDialog(
                         )
                     }
                     ElevatedButton(onClick = {
-                        firebaseViewModel.updateProfilePic()
-                        taskViewModel.showProfilePictureDialog = false
-                        firebaseViewModel.imageUri = null
+                        if(taskViewModel.isUploadingStatus){
+                            firebaseViewModel.setStatus()
+                        }else{
+                            firebaseViewModel.updateProfilePic()
+                            firebaseViewModel.imageUri = null
+                        }
                         Toast.makeText(
                             ctx,
-                            "Profile Picture Updated",
+                            if(taskViewModel.isUploadingStatus){
+                                "Status will be Updated !"
+                            }else{
+                                "Profile Picture will  be Updated"
+                            },
                             Toast.LENGTH_SHORT
                         ).show()
+                        taskViewModel.showSetProfilePictureAndStatusDialog = false
+                        taskViewModel.isUploadingStatus = false
                     }) {
                         Text(
                             text = "Set",

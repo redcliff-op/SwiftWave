@@ -95,7 +95,7 @@ fun PersonCard(
                             )
                             Spacer(modifier = Modifier.size(5.dp))
                         }
-                        if(userData.latestMessage?.message.toString().isNotEmpty()){
+                        if(userData.latestMessage?.message != null){
                             Text(
                                 text = userData.latestMessage?.message.toString(),
                                 color = Color.Gray,
@@ -104,10 +104,12 @@ fun PersonCard(
                             )
                         }
                     }
-                    Text(
-                        text = taskViewModel.getTime(userData.latestMessage!!.time?:0),
-                        color = Color.Gray,
-                    )
+                    if(userData.latestMessage?.time!=null){
+                        Text(
+                            text = taskViewModel.getTime(userData.latestMessage?.time ?:0),
+                            color = Color.Gray,
+                        )
+                    }
                 }
             }
         }

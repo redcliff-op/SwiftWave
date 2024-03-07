@@ -21,6 +21,7 @@ import com.google.firebase.storage.storage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
@@ -39,6 +40,8 @@ class FirebaseViewModel(
     var selectedMessage by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
     var profilePicture by mutableStateOf("")
+    var curStatus by mutableStateOf("")
+    var sentBy by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -48,6 +51,8 @@ class FirebaseViewModel(
     private val _searchContacts = MutableStateFlow<List<UserData>>(emptyList())
     val searchContacts : StateFlow<List<UserData>> = _searchContacts
     private var conversationsListener: ListenerRegistration? = null
+    val _viewedStatus = MutableStateFlow<MutableList<String?>>(emptyList<String>().toMutableList())
+    val viewedStatus : StateFlow<MutableList<String?>> get() = _viewedStatus.asStateFlow()
 
     init {
         addUserToFirestore(userData)
@@ -130,6 +135,8 @@ class FirebaseViewModel(
                 userData.bio = currentUser?.bio.toString()
                 profilePicture = currentUser?.profilePictureUrl.toString()
                 Bio = currentUser?.bio.toString()
+                userData.status = currentUser?.status.toString()
+                curStatus = currentUser?.status.toString()
             }
         }
     }
@@ -439,4 +446,61 @@ class FirebaseViewModel(
         }
 
     }
+
+    fun setStatus() {
+        viewModelScope.launch {
+            if (imageUri != null && userData.userId!!.isNotEmpty()) {
+                val storageRef = Firebase.storage.reference.child("status/${userData.userId}/${UUID.randomUUID()}")
+                val allStatus = Firebase.storage.reference.child("status/${userData.userId}")
+                allStatus.listAll()
+                    .addOnSuccessListener { listResult ->
+                        listResult.items.forEach { item ->
+                            item.delete()
+                        }
+                    }
+                val uploadTask = storageRef.putFile(imageUri!!)
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+                    storageRef.downloadUrl
+                }.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val downloadUri = task.result
+                        val currentTimeMillis = System.currentTimeMillis()
+                        val expirationTimeMillis = currentTimeMillis + 24 * 60 * 60 * 1000
+                        val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                        userDocumentRef.update("status", downloadUri.toString())
+                        userDocumentRef.update("statusExpiry", expirationTimeMillis)
+                        userData.status = downloadUri.toString()
+                        curStatus = downloadUri.toString()
+                        userData.statusExpiry = expirationTimeMillis
+                    }
+                }
+            }
+            imageUri = null
+        }
+    }
+
+    fun deleteStatus(otherUserData: UserData) {
+        viewModelScope.launch {
+            if(otherUserData == userData){
+                curStatus = ""
+            }
+            _viewedStatus.value.remove(otherUserData.userId.toString())
+            val allStatus = Firebase.storage.reference.child("status/${otherUserData.userId}")
+            allStatus.listAll()
+                .addOnSuccessListener { listResult ->
+                    listResult.items.forEach { item ->
+                        item.delete()
+                    }
+                }
+            val userDocumentRef = firebase.collection("users").document(otherUserData.userId.toString())
+            userDocumentRef.update("status", null)
+            userDocumentRef.update("statusExpiry", null)
+        }
+    }
+
 }

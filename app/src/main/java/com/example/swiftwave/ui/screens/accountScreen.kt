@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +34,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.swiftwave.R
 import com.example.swiftwave.auth.UserData
-import com.example.swiftwave.ui.components.SetProfilePictureDialog
+import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
@@ -45,8 +46,8 @@ fun accountScreen(
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
-    if(firebaseViewModel.imageUri!=null && taskViewModel.showProfilePictureDialog){
-        SetProfilePictureDialog(
+    if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
+        SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
             taskViewModel = taskViewModel
         )
@@ -103,7 +104,7 @@ fun accountScreen(
                 imagePicker.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
-                taskViewModel.showProfilePictureDialog = true
+                taskViewModel.showSetProfilePictureAndStatusDialog = true
             }) {
                 Icon(
                     painter = painterResource(id = R.drawable.profilepicediticon),

@@ -25,15 +25,16 @@ class TaskViewModel : ViewModel(){
     var showDialog by mutableStateOf(false)
     var showDeleteMsgDialog by mutableStateOf(false)
     var showImageDialog by mutableStateOf(false)
-    var showProfilePictureDialog by mutableStateOf(false)
+    var showSetProfilePictureAndStatusDialog by mutableStateOf(false)
     var chatOptions by mutableStateOf(false)
     var isEditing by mutableStateOf(false)
+    var isUploadingStatus by mutableStateOf(false)
     fun initialiseBottomNavBar(): List<bottomNavBarItem> {
         return listOf(
             bottomNavBarItem("Chats", R.drawable.chaticon),
             bottomNavBarItem("Favorites",R.drawable.favoritesicon),
+            bottomNavBarItem("Status",R.drawable.statusicon),
             bottomNavBarItem("Account",R.drawable.accounticon),
-            bottomNavBarItem("Settings",R.drawable.settingsicon),
         )
     }
 

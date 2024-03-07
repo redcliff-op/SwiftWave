@@ -14,9 +14,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -50,7 +47,7 @@ import com.example.swiftwave.ui.screens.favoritesScreen
 import com.example.swiftwave.ui.screens.loginScreen
 import com.example.swiftwave.ui.screens.personChatScreen
 import com.example.swiftwave.ui.screens.searchScreen
-import com.example.swiftwave.ui.screens.settingsScreen
+import com.example.swiftwave.ui.screens.statusScreen
 import com.example.swiftwave.ui.theme.SwiftWaveTheme
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.SignInViewModel
@@ -166,8 +163,12 @@ class MainActivity : ComponentActivity() {
                                     taskViewModel = taskViewModel
                                 )
                             }
-                            composable(route = "Settings"){
-                                settingsScreen()
+                            composable(route = "Status"){
+                                statusScreen(
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel,
+                                    navController = navController
+                                )
                             }
                             composable(route = "Login"){
                                 val viewModel = viewModel<SignInViewModel>()
