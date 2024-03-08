@@ -11,7 +11,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.data.remote.callNotifAPI
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -68,40 +71,51 @@ class FirebaseViewModel(
         viewModelScope.launch {
             val chatListUsers = mutableListOf<UserData>()
             val favorites = mutableListOf<UserData>()
-            val userQuery = firebase.collection("users").document(userData.userId.toString()).get().await()
-            val currentUser = userQuery.toObject(UserData::class.java)
+            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val currentUser = currentUserDoc.get().await().toObject(UserData::class.java)
             if (currentUser != null) {
+                val friendQueries = mutableListOf<Task<DocumentSnapshot>>()
+                val latestMessageQueries = mutableListOf<Task<DocumentSnapshot>>()
+                val favoriteQueries = mutableListOf<Task<DocumentSnapshot>>()
+                val favoriteLatestMessageQueries = mutableListOf<Task<DocumentSnapshot>>()
+
                 for (userId in currentUser.chatList!!) {
-                    val friendQuery = firebase.collection("users").document(userId).get().await()
-                    val friend = friendQuery.toObject(UserData::class.java)
-                    val latestMessageQuery = firebase.collection("conversations")
-                        .document(userData.userId.toString())
-                        .collection(userId)
-                        .orderBy("time", Query.Direction.DESCENDING)
-                        .limit(1)
-                        .get()
-                        .await()
-                    val latestMessage = latestMessageQuery.toObjects(MessageData::class.java).firstOrNull()
-                    friend?.latestMessage = latestMessage
-                    friend?.let { chatListUsers.add(it) }
+                    val friendRef = firebase.collection("users").document(userId)
+                    val latestMessageRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + userId)
+                    friendQueries.add(friendRef.get())
+                    latestMessageQueries.add(latestMessageRef.get())
                 }
+
                 for (userId in currentUser.favorites!!) {
-                    val friendQuery = firebase.collection("users").document(userId).get().await()
-                    val friend = friendQuery.toObject(UserData::class.java)
-                    val latestMessageQuery = firebase.collection("conversations")
-                        .document(userData.userId.toString())
-                        .collection(userId)
-                        .orderBy("time", Query.Direction.DESCENDING)
-                        .limit(1)
-                        .get()
-                        .await()
-                    val latestMessage = latestMessageQuery.toObjects(MessageData::class.java).firstOrNull()
-                    friend?.latestMessage = latestMessage
-                    friend?.let { favorites.add(it) }
+                    val favoriteRef = firebase.collection("users").document(userId)
+                    val favoriteLatestMessageRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + userId)
+                    favoriteQueries.add(favoriteRef.get())
+                    favoriteLatestMessageQueries.add(favoriteLatestMessageRef.get())
                 }
+
+                Tasks.whenAllComplete(friendQueries).await()
+                Tasks.whenAllComplete(latestMessageQueries).await()
+                Tasks.whenAllComplete(favoriteQueries).await()
+                Tasks.whenAllComplete(favoriteLatestMessageQueries).await()
+
+                val friendResults = friendQueries.map { it.result.toObject(UserData::class.java) }
+                val latestMessageResults = latestMessageQueries.map { it.result.toObject(MessageData::class.java) }
+
+                for (i in friendResults.indices) {
+                    friendResults[i]?.latestMessage = latestMessageResults[i]
+                    friendResults[i]?.let { chatListUsers.add(it) }
+                }
+                _chatListUsers.value = chatListUsers
+
+                val favoriteResults = favoriteQueries.map { it.result.toObject(UserData::class.java) }
+                val favoriteLatestMessageResults = favoriteLatestMessageQueries.map { it.result.toObject(MessageData::class.java) }
+
+                for (i in favoriteResults.indices) {
+                    favoriteResults[i]?.latestMessage = favoriteLatestMessageResults[i]
+                    favoriteResults[i]?.let { favorites.add(it) }
+                }
+                _favorites.value = favorites
             }
-            _chatListUsers.value = chatListUsers
-            _favorites.value = favorites
         }
     }
 
@@ -202,20 +216,26 @@ class FirebaseViewModel(
                 .collection(otherUserId)
                 .add(messageData)
                 .await()
-
             firebase.collection("conversations").document(otherUserId)
                 .collection(userData.userId.toString())
                 .add(messageData)
-                .addOnSuccessListener {
-                    if (imageUrl!=null && message.isEmpty()) {
-                        sendNotif("Image")
-                    }else{
-                        sendNotif(message)
-                    }
-                }
                 .await()
+
+
+            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + otherUserId)
+            latestMessageSenderRef.set(messageData)
+
+            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData.userId.toString())
+            latestMessageRecipientRef.set(messageData)
+
+            if (imageUrl != null && message.isEmpty()) {
+                sendNotif("Image")
+            } else {
+                sendNotif(message)
+            }
         }
     }
+
 
     fun uploadImageAndSendMessage(otherUserId: String, message: String) {
         if (imageUri != null) {
@@ -421,6 +441,20 @@ class FirebaseViewModel(
                     val messageId = document.id
                     recipientUserRef.document(messageId).update("message", newMessage)
                 }
+            }
+
+            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + otherUserId)
+            val latestMessageSenderQuery = currentUserRef.orderBy("time", Query.Direction.DESCENDING).limit(1).get().await()
+            val latestMessageSender = latestMessageSenderQuery.documents.firstOrNull()?.toObject(MessageData::class.java)
+            latestMessageSender?.let {
+                latestMessageSenderRef.set(it)
+            }
+
+            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData.userId.toString())
+            val latestMessageRecipientQuery = recipientUserRef.orderBy("time", Query.Direction.DESCENDING).limit(1).get().await()
+            val latestMessageRecipient = latestMessageRecipientQuery.documents.firstOrNull()?.toObject(MessageData::class.java)
+            latestMessageRecipient?.let {
+                latestMessageRecipientRef.set(it)
             }
         }
     }
