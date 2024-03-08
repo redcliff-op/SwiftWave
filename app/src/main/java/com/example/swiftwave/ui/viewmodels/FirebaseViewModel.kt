@@ -400,15 +400,25 @@ class FirebaseViewModel(
                 .document(otherUserId)
                 .collection(userData.userId.toString())
 
-            val querySnapshot = currentUserRef
+            val curUserQuerySnapshot = currentUserRef
                 .whereEqualTo("time", messageTimestamp)
                 .get()
                 .await()
 
-            if (!querySnapshot.isEmpty) {
-                for (document in querySnapshot.documents) {
+            val otherUserUuerySnapshot = recipientUserRef
+                .whereEqualTo("time", messageTimestamp)
+                .get()
+                .await()
+
+            if (!curUserQuerySnapshot.isEmpty) {
+                for (document in curUserQuerySnapshot.documents) {
                     val messageId = document.id
                     currentUserRef.document(messageId).update("message", newMessage)
+                }
+            }
+            if (!curUserQuerySnapshot.isEmpty) {
+                for (document in otherUserUuerySnapshot) {
+                    val messageId = document.id
                     recipientUserRef.document(messageId).update("message", newMessage)
                 }
             }
