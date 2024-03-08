@@ -283,6 +283,9 @@ fun personChatScreen(
                             onClick = {
                                 taskViewModel.chatOptions = false
                                 firebaseViewModel.selectedMessage = null
+                                taskViewModel.isEditing = false
+                                firebaseViewModel.text = ""
+                                firebaseViewModel.imageUri = null
                             }
                         ){
                             Icon(
@@ -437,7 +440,7 @@ fun personChatScreen(
                         unfocusedBorderColor = Color.Transparent,
                     ),
                     trailingIcon = {
-                        AnimatedVisibility(visible = firebaseViewModel.imageUri==null) {
+                        AnimatedVisibility(visible = firebaseViewModel.imageUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
                             IconButton(
                                 onClick = {
                                     imagePicker.launch(
