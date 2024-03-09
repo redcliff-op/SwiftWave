@@ -11,11 +11,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -230,14 +230,10 @@ class MainActivity : ComponentActivity() {
                             composable(
                                 route = "PersonChat",
                                 enterTransition = {
-                                    slideInHorizontally(
-                                        initialOffsetX = { fullWidth -> fullWidth }
-                                    )
+                                    fadeIn() + expandVertically()
                                 },
                                 exitTransition = {
-                                    slideOutHorizontally(
-                                        targetOffsetX = { fullWidth -> fullWidth }
-                                    )
+                                    fadeOut() + shrinkVertically()
                                 }
                             ){
                                 personChatScreen(
