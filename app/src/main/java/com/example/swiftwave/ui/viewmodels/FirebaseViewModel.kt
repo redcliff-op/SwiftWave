@@ -44,7 +44,7 @@ class FirebaseViewModel(
     var selectedMessage by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
     var profilePicture by mutableStateOf("")
-    var curStatus by mutableStateOf("")
+    var curUserStatus by mutableStateOf(false)
     var sentBy by mutableStateOf("")
     var imageDialogProfilePicture by mutableStateOf("")
 
@@ -154,7 +154,9 @@ class FirebaseViewModel(
                 profilePicture = currentUser?.profilePictureUrl.toString()
                 Bio = currentUser?.bio.toString()
                 userData.status = currentUser?.status.toString()
-                curStatus = currentUser?.status.toString()
+                if(!currentUser?.status.isNullOrEmpty()){
+                    curUserStatus = true
+                }
             }
         }
     }
@@ -527,7 +529,7 @@ class FirebaseViewModel(
                         userDocumentRef.update("status", downloadUri.toString())
                         userDocumentRef.update("statusExpiry", expirationTimeMillis)
                         userData.status = downloadUri.toString()
-                        curStatus = downloadUri.toString()
+                        curUserStatus = true
                         userData.statusExpiry = expirationTimeMillis
                     }
                 }
@@ -539,7 +541,7 @@ class FirebaseViewModel(
     fun deleteStatus(otherUserData: UserData) {
         viewModelScope.launch(Dispatchers.IO) {
             if(otherUserData == userData){
-                curStatus = ""
+                curUserStatus = false
             }
             _viewedStatus.value.remove(otherUserData.userId.toString())
             val allStatus = Firebase.storage.reference.child("status/${otherUserData.userId}")

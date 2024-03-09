@@ -30,10 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.navArgument
 import coil.compose.AsyncImage
-import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
 import com.example.swiftwave.ui.components.StatusCard
@@ -45,6 +42,7 @@ fun statusScreen(
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
+    println(firebaseViewModel.curUserStatus)
     firebaseViewModel.loadChatListUsers()
     val userList = firebaseViewModel.chatListUsers.collectAsState(initial = emptyList())
     if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
@@ -97,7 +95,7 @@ fun statusScreen(
         ){
             Box(
                 modifier =
-                    if(firebaseViewModel.curStatus.isNotBlank()){
+                    if(firebaseViewModel.curUserStatus){
                         Modifier
                             .size(65.dp)
                             .border(
@@ -115,7 +113,7 @@ fun statusScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            if(firebaseViewModel.curStatus.isNotBlank()){
+                            if(firebaseViewModel.curUserStatus){
                                 firebaseViewModel.chattingWith = firebaseViewModel.userData
                                 firebaseViewModel.imageString = firebaseViewModel.userData.status.toString()
                                 taskViewModel.showImageDialog = true
