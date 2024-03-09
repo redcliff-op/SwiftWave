@@ -111,9 +111,9 @@ fun chatCard(
                             modifier = Modifier
                                 .size(280.dp)
                                 .padding(
-                                    start = 10.dp,
-                                    end = 10.dp,
-                                    top = 10.dp,
+                                    start = 7.dp,
+                                    end = 7.dp,
+                                    top = 7.dp,
                                 ).clickable {
                                     firebaseViewModel.imageString = messageData.image
                                     firebaseViewModel.sentBy = messageData.senderID.toString()
