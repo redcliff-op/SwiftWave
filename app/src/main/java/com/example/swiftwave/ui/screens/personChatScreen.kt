@@ -407,7 +407,7 @@ fun personChatScreen(
                         AsyncImage(
                             model = firebaseViewModel.imageUri,
                             contentDescription = null,
-                            modifier = Modifier.size(200.dp),
+                            modifier = Modifier.size(280.dp),
                             contentScale = ContentScale.Crop
                         )
                     }

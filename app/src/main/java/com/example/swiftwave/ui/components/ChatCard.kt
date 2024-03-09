@@ -99,7 +99,7 @@ fun chatCard(
                 Column(
                     modifier =
                         if(messageData.image!=null){
-                            Modifier.width(200.dp)
+                            Modifier.width(280.dp)
                         }else{
                             Modifier
                         }
@@ -109,7 +109,7 @@ fun chatCard(
                             model = messageData.image,
                             contentDescription = null,
                             modifier = Modifier
-                                .size(200.dp)
+                                .size(280.dp)
                                 .padding(
                                     start = 10.dp,
                                     end = 10.dp,
