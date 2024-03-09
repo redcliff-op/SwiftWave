@@ -21,6 +21,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,7 +69,7 @@ class FirebaseViewModel(
     }
 
     fun loadChatListUsers() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val chatListUsers = mutableListOf<UserData>()
             val favorites = mutableListOf<UserData>()
             val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
@@ -120,22 +121,24 @@ class FirebaseViewModel(
     }
 
     fun setupLatestMessageListener() {
-        chatListUsers.value.forEach { user ->
-            firebase.collection("conversations").document(userData.userId.toString())
-                .collection(user.userId.toString())
-                .orderBy("time", Query.Direction.DESCENDING)
-                .limit(1)
-                .addSnapshotListener { snapshots, error ->
-                    if (error != null) {
-                        return@addSnapshotListener
+        viewModelScope.launch(Dispatchers.IO) {
+            chatListUsers.value.forEach { user ->
+                firebase.collection("conversations").document(userData.userId.toString())
+                    .collection(user.userId.toString())
+                    .orderBy("time", Query.Direction.DESCENDING)
+                    .limit(1)
+                    .addSnapshotListener { snapshots, error ->
+                        if (error != null) {
+                            return@addSnapshotListener
+                        }
+                        loadChatListUsers()
                     }
-                    loadChatListUsers()
-                }
+            }
         }
     }
 
     private fun addUserToFirestore(user: UserData) {
-        viewModelScope.launch{
+        viewModelScope.launch (Dispatchers.IO){
             val userQuery = firebase.collection("users").document(user.userId.toString()).get().await()
 
             if (!userQuery.exists()) {
@@ -157,7 +160,7 @@ class FirebaseViewModel(
     }
 
     fun addUserToChatList(userMail: String, context: Context) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
             if (!userQuery.isEmpty) {
                 val otherUser = userQuery.documents.first().toObject(UserData::class.java)
@@ -187,7 +190,7 @@ class FirebaseViewModel(
     }
 
     fun addUserToFavorites(userMail: String, context: Context) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
             if (!userQuery.isEmpty) {
                 val otherUser = userQuery.documents.first().toObject(UserData::class.java)
@@ -209,7 +212,7 @@ class FirebaseViewModel(
     }
 
     fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null) {
-        viewModelScope.launch{
+        viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
             val messageData = MessageData(message, userData.userId.toString(), currentTime, imageUrl)
             firebase.collection("conversations").document(userData.userId.toString())
@@ -238,17 +241,19 @@ class FirebaseViewModel(
 
 
     fun uploadImageAndSendMessage(otherUserId: String, message: String) {
-        if (imageUri != null) {
-            val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
-            val uploadTask = storageRef.putFile(imageUri!!)
-            uploadTask.addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    val imageUrl = uri.toString()
-                    sendMessage(otherUserId, imageUrl = imageUrl, message = message)
+        viewModelScope.launch(Dispatchers.IO) {
+            if (imageUri != null) {
+                val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
+                val uploadTask = storageRef.putFile(imageUri!!)
+                uploadTask.addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { uri ->
+                        val imageUrl = uri.toString()
+                        sendMessage(otherUserId, imageUrl = imageUrl, message = message)
+                    }
                 }
+            } else {
+                sendMessage(otherUserId, message = message)
             }
-        } else {
-            sendMessage(otherUserId, message = message)
         }
     }
 
@@ -256,7 +261,7 @@ class FirebaseViewModel(
     val chatMessages: StateFlow<List<MessageData>> = _chatMessages
 
     fun getMessagesWithUser() {
-        viewModelScope.launch {
+        viewModelScope.launch (Dispatchers.IO) {
             val messages = firebase.collection("conversations").document(userData.userId.toString())
                 .collection(chattingWith?.userId.toString())
                 .orderBy("time")
@@ -267,15 +272,17 @@ class FirebaseViewModel(
     }
 
     fun startMessageListener() {
-        conversationsListener = firebase.collection("conversations")
-            .document(userData.userId.toString())
-            .collection(chattingWith?.userId.toString())
-            .addSnapshotListener { snapshots, error ->
-                if (error != null) {
-                    return@addSnapshotListener
+        viewModelScope.launch (Dispatchers.IO){
+            conversationsListener = firebase.collection("conversations")
+                .document(userData.userId.toString())
+                .collection(chattingWith?.userId.toString())
+                .addSnapshotListener { snapshots, error ->
+                    if (error != null) {
+                        return@addSnapshotListener
+                    }
+                    getMessagesWithUser()
                 }
-                getMessagesWithUser()
-            }
+        }
     }
 
     fun stopConversationsListener() {
@@ -283,7 +290,7 @@ class FirebaseViewModel(
     }
 
     fun addBio() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
             userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
@@ -297,7 +304,7 @@ class FirebaseViewModel(
     }
 
     fun deleteFriend(friendUserId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _chatListUsers.value = _chatListUsers.value.filter { it.userId != friendUserId }
             firebase.collection("users").document(userData.userId.toString())
                 .update("chatList", FieldValue.arrayRemove(friendUserId))
@@ -328,7 +335,7 @@ class FirebaseViewModel(
     }
 
     fun deleteFavorite(friendUserId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _favorites.value = _favorites.value.filter { it.userId != friendUserId }
             firebase.collection("users").document(userData.userId.toString())
                 .update("favorites", FieldValue.arrayRemove(friendUserId))
@@ -338,7 +345,7 @@ class FirebaseViewModel(
     }
 
     fun deleteMessage(otherUserId: String, messageData: MessageData) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val senderMessageRef = firebase.collection("conversations")
                 .document(userData.userId.toString())
                 .collection(otherUserId)
@@ -385,7 +392,7 @@ class FirebaseViewModel(
     // FCM
 
     private fun getToken(){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             FirebaseMessaging.getInstance().token.addOnSuccessListener {
                 val token = it.toString()
                 userData.token = token
@@ -396,7 +403,7 @@ class FirebaseViewModel(
     }
 
     private fun sendNotif(message: String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val jsonObject = JSONObject()
             val notificationObject = JSONObject()
             val dataObject = JSONObject()
@@ -411,7 +418,7 @@ class FirebaseViewModel(
     }
 
     fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val currentUserRef = firebase.collection("conversations")
                 .document(userData.userId.toString())
                 .collection(otherUserId)
@@ -460,7 +467,7 @@ class FirebaseViewModel(
     }
 
     fun updateProfilePic() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (imageUri != null && userData.userId!!.isNotEmpty()) {
                 val storageRef = Firebase.storage.reference.child("profilePics/${userData.userId}/${UUID.randomUUID()}")
                 val allProfilePics = Firebase.storage.reference.child("profilePics/${userData.userId}")
@@ -493,7 +500,7 @@ class FirebaseViewModel(
     }
 
     fun setStatus() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (imageUri != null && userData.userId!!.isNotEmpty()) {
                 val storageRef = Firebase.storage.reference.child("status/${userData.userId}/${UUID.randomUUID()}")
                 val allStatus = Firebase.storage.reference.child("status/${userData.userId}")
@@ -530,7 +537,7 @@ class FirebaseViewModel(
     }
 
     fun deleteStatus(otherUserData: UserData) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if(otherUserData == userData){
                 curStatus = ""
             }
