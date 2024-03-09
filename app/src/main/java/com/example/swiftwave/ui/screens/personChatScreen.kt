@@ -347,9 +347,9 @@ fun personChatScreen(
                     .fillMaxSize()
                     .height(50.dp)
                     .weight(1f),
-                state = rememberLazyListState(10000)
+                reverseLayout = true
             ) {
-                items(chatList.value) { message ->
+                items(chatList.value.sortedBy { it.time }.reversed()) { message ->
                     chatCard(
                         message,
                         firebaseViewModel,
