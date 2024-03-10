@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -173,6 +174,7 @@ fun ImageDialog(
             taskViewModel.showImageDialog = false
             taskViewModel.showDeleteStatusOption = false
             firebaseViewModel.sentBy = ""
+            firebaseViewModel.imageViewText = ""
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
@@ -194,6 +196,7 @@ fun ImageDialog(
                         taskViewModel.showImageDialog = false
                         taskViewModel.showDeleteStatusOption = false
                         firebaseViewModel.sentBy = ""
+                        firebaseViewModel.imageViewText = ""
                     }
                 ){
                     Icon(
@@ -261,7 +264,7 @@ fun ImageDialog(
             Column (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 30.dp),
+                    .padding(bottom = if(firebaseViewModel.imageViewText.isNotBlank()) 10.dp else 30.dp),
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
@@ -269,6 +272,13 @@ fun ImageDialog(
                     model = firebaseViewModel.imageString,
                     contentDescription = null,
                 )
+                if(firebaseViewModel.imageViewText.isNotBlank()){
+                    Text(
+                        text = firebaseViewModel.imageViewText,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

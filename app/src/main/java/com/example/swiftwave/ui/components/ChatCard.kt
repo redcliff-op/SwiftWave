@@ -190,6 +190,7 @@ fun chatCard(
                                     )
                                     .clickable {
                                         firebaseViewModel.imageString = messageData.image
+                                        firebaseViewModel.imageViewText = messageData.message.toString()
                                         firebaseViewModel.sentBy = messageData.senderID.toString()
                                         taskViewModel.showImageDialog =
                                             !taskViewModel.showImageDialog

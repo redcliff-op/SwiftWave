@@ -39,6 +39,7 @@ class FirebaseViewModel(
     var text by mutableStateOf("")
     var imageUri by mutableStateOf<Uri?>(null)
     var imageString by mutableStateOf("")
+    var imageViewText by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
     var selectedMessage by mutableStateOf<MessageData?>(null)
