@@ -419,7 +419,7 @@ class FirebaseViewModel(
         }
     }
 
-    fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String) {
+    fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String, reaction :String ? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentUserRef = firebase.collection("conversations")
                 .document(userData.userId.toString())
@@ -443,12 +443,14 @@ class FirebaseViewModel(
                 for (document in curUserQuerySnapshot.documents) {
                     val messageId = document.id
                     currentUserRef.document(messageId).update("message", newMessage)
+                    currentUserRef.document(messageId).update("curUserReaction", reaction)
                 }
             }
             if (!curUserQuerySnapshot.isEmpty) {
                 for (document in otherUserUuerySnapshot) {
                     val messageId = document.id
                     recipientUserRef.document(messageId).update("message", newMessage)
+                    recipientUserRef.document(messageId).update("otherUserReaction", reaction)
                 }
             }
 
