@@ -353,6 +353,13 @@ class FirebaseViewModel(
                     }
                 }
                 .await()
+
+            firebase.collection("latest_messages").document(userData.userId.toString() + "_" + friendUserId)
+                .delete()
+                .await()
+            firebase.collection("latest_messages").document(friendUserId + "_" + userData.userId.toString())
+                .delete()
+                .await()
         }
     }
 
@@ -391,13 +398,43 @@ class FirebaseViewModel(
                 document.reference.delete()
             }
 
+            val latestMessageSenderRef = firebase.collection("conversations")
+                .document(userData.userId.toString())
+                .collection(otherUserId)
+                .orderBy("time", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .await()
+
+            val latestMessageRecipientRef = firebase.collection("conversations")
+                .document(otherUserId)
+                .collection(userData.userId.toString())
+                .orderBy("time", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .await()
+
+            val latestMessageSender = latestMessageSenderRef.documents.firstOrNull()?.toObject(MessageData::class.java)
+            latestMessageSender?.let {
+                firebase.collection("latest_messages")
+                    .document(userData.userId.toString() + "_" + otherUserId)
+                    .set(it)
+            }
+
+            val latestMessageRecipient = latestMessageRecipientRef.documents.firstOrNull()?.toObject(MessageData::class.java)
+            latestMessageRecipient?.let {
+                firebase.collection("latest_messages")
+                    .document(otherUserId + "_" + userData.userId.toString())
+                    .set(it)
+            }
+
             messageData.image?.let { imageUrl ->
                 val storageRef = Firebase.storage.getReferenceFromUrl(imageUrl)
                 storageRef.delete()
             }
         }
     }
-
+    
     fun filterContacts(
         contactList : List<UserData>,
         toSearch : String
