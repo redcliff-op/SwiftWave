@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -367,11 +368,11 @@ fun personChatScreen(
                         ){
                             Text(
                                 text =
-                                    if(taskViewModel.isEditing){
-                                        "Edit Message"
-                                    }else{
-                                        "Send Image?"
-                                    },
+                                if(taskViewModel.isEditing){
+                                    "Edit Message"
+                                }else{
+                                    "Send Image?"
+                                },
                                 fontSize = 20.sp
                             )
                             if(taskViewModel.isEditing){
@@ -413,92 +414,102 @@ fun personChatScreen(
                     Spacer(modifier = Modifier.size(10.dp))
                 }
             }
-            Row (
-                modifier = Modifier.fillMaxWidth(0.9f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ){
-                OutlinedTextField(
-                    value = firebaseViewModel.text,
-                    onValueChange = {newText -> firebaseViewModel.text = newText},
-                    shape = RoundedCornerShape(30.dp),
-                    label = {
-                        Text(
-                            text = "Message",
-                            fontSize = 15.sp,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    maxLines = 4,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
-                        unfocusedBorderColor = Color.Transparent,
-                    ),
-                    trailingIcon = {
-                        AnimatedVisibility(visible = firebaseViewModel.imageUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
-                            IconButton(
-                                onClick = {
-                                    imagePicker.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                modifier = Modifier.padding(end = 10.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.sendimageicon),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(30.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
+            if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == true){
+                Text(
+                    text = "You cannot Message this Person Anymore",
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                    fontWeight = FontWeight.Bold
                 )
-                AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            if(taskViewModel.isEditing){
-                                firebaseViewModel.editMessage(
-                                    firebaseViewModel.chattingWith?.userId.toString(),
-                                    firebaseViewModel.selectedMessage?.time!!,
-                                    firebaseViewModel.text,
-                                    if(firebaseViewModel.selectedMessage!!.curUserReaction==null){
-                                        null
-                                    }else{
-                                        firebaseViewModel.selectedMessage!!.curUserReaction
-                                    }
-                                )
-                            }else{
-                                firebaseViewModel.uploadImageAndSendMessage(
-                                    firebaseViewModel.chattingWith?.userId.toString(),
-                                    firebaseViewModel.text
-                                )
-                                if(firebaseViewModel.imageUri!=null){
-                                    Toast.makeText(
-                                        ctx,
-                                        "Image will be Uploaded and Sent",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+            }else{
+                Row (
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ){
+                    OutlinedTextField(
+                        value = firebaseViewModel.text,
+                        onValueChange = {newText -> firebaseViewModel.text = newText},
+                        shape = RoundedCornerShape(30.dp),
+                        label = {
+                            Text(
+                                text = "Message",
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        maxLines = 4,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
+                            unfocusedBorderColor = Color.Transparent,
+                        ),
+                        trailingIcon = {
+                            AnimatedVisibility(visible = firebaseViewModel.imageUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
+                                IconButton(
+                                    onClick = {
+                                        imagePicker.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    },
+                                    modifier = Modifier.padding(end = 10.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.sendimageicon),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(30.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
-                            firebaseViewModel.text = ""
-                            firebaseViewModel.imageUri = null
-                            taskViewModel.isEditing = false
-                            taskViewModel.chatOptions = false
-                            firebaseViewModel.selectedMessage = null
                         }
-                    ){
-                        Icon(
-                            painter = painterResource(id = R.drawable.sendicon),
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    )
+                    AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                if(taskViewModel.isEditing){
+                                    firebaseViewModel.editMessage(
+                                        firebaseViewModel.chattingWith?.userId.toString(),
+                                        firebaseViewModel.selectedMessage?.time!!,
+                                        firebaseViewModel.text,
+                                        if(firebaseViewModel.selectedMessage!!.curUserReaction==null){
+                                            null
+                                        }else{
+                                            firebaseViewModel.selectedMessage!!.curUserReaction
+                                        }
+                                    )
+                                }else{
+                                    firebaseViewModel.uploadImageAndSendMessage(
+                                        firebaseViewModel.chattingWith?.userId.toString(),
+                                        firebaseViewModel.text
+                                    )
+                                    if(firebaseViewModel.imageUri!=null){
+                                        Toast.makeText(
+                                            ctx,
+                                            "Image will be Uploaded and Sent",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                                firebaseViewModel.text = ""
+                                firebaseViewModel.imageUri = null
+                                taskViewModel.isEditing = false
+                                taskViewModel.chatOptions = false
+                                firebaseViewModel.selectedMessage = null
+                            }
+                        ){
+                            Icon(
+                                painter = painterResource(id = R.drawable.sendicon),
+                                contentDescription = null,
+                                modifier = Modifier.size(30.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }

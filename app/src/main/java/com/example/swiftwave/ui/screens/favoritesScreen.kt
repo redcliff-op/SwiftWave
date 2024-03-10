@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -30,15 +31,22 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.CustomDialog
 import kotlinx.coroutines.launch
 
@@ -49,8 +57,10 @@ fun favoritesScreen(
     firebaseViewModel: FirebaseViewModel,
     navController: NavController
 ){
+    val ctx = LocalContext.current
     firebaseViewModel.loadChatListUsers()
     val favorites = firebaseViewModel.favorites.collectAsState()
+    val blockedUsers = firebaseViewModel.blockedUsers.collectAsState()
     if(taskViewModel.showDialog){
         CustomDialog(
             taskViewModel = taskViewModel,
@@ -79,7 +89,7 @@ fun favoritesScreen(
             modifier = Modifier.fillMaxWidth()
         ){
             items(
-                items = favorites.value.sortedByDescending { it.latestMessage?.time },
+                items = favorites.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time },
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(
@@ -116,16 +126,34 @@ fun favoritesScreen(
                                         horizontalArrangement = Arrangement.Center
                                     ){
                                         Column {
-                                            Text(text = "Remove Contacts and all Chats?")
-                                            Text(text = "This operation is Irreversible")
+                                            Text(text = "Delete or Block User ?")
                                         }
                                         IconButton(onClick = { scope.launch { dismissState.reset() } }) {
-                                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                                            Icon(Icons.Rounded.Refresh, contentDescription = "Refresh")
                                         }
                                         IconButton(onClick = {
                                             firebaseViewModel.deleteFriend(userData.userId.toString())
+                                            Toast.makeText(
+                                                ctx,
+                                                "Contact and Chats Deleted",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }) {
-                                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                            Icon(Icons.Rounded.Delete, contentDescription = "Delete")
+                                        }
+                                        IconButton(onClick = {
+                                            firebaseViewModel.blockUser(userData.userId.toString())
+                                            Toast.makeText(
+                                                ctx,
+                                                "Blocked User, you can manage blocked users in Settings",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.blockicon),
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(24.dp)
+                                            )
                                         }
                                     }
                                 }
@@ -139,7 +167,14 @@ fun favoritesScreen(
                                         IconButton(onClick = { scope.launch { dismissState.reset() } }) {
                                             Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                         }
-                                        IconButton(onClick = {firebaseViewModel.deleteFavorite(userData.userId.toString())}) {
+                                        IconButton(onClick = {
+                                            firebaseViewModel.deleteFavorite(userData.userId.toString())
+                                            Toast.makeText(
+                                                ctx,
+                                                "Removed from Favorites",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete")
                                         }
                                     }

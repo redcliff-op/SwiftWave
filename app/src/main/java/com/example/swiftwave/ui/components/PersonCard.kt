@@ -79,36 +79,38 @@ fun PersonCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                 )
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Row(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        if(userData.latestMessage?.image !=null){
-                            Icon(
-                                painter = painterResource(id = R.drawable.latestimageicon),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
+                if(userData.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Row(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if(userData.latestMessage?.image !=null){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.latestimageicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                                Spacer(modifier = Modifier.size(5.dp))
+                            }
+                            if(userData.latestMessage?.message != null){
+                                Text(
+                                    text = userData.latestMessage?.message.toString(),
+                                    color = Color.Gray,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
-                        if(userData.latestMessage?.message != null){
+                        if(userData.latestMessage?.time!=null){
                             Text(
-                                text = userData.latestMessage?.message.toString(),
+                                text = taskViewModel.getTime(userData.latestMessage?.time ?:0),
                                 color = Color.Gray,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
                             )
                         }
-                    }
-                    if(userData.latestMessage?.time!=null){
-                        Text(
-                            text = taskViewModel.getTime(userData.latestMessage?.time ?:0),
-                            color = Color.Gray,
-                        )
                     }
                 }
             }

@@ -14,6 +14,7 @@ data class UserData(
     val mail: String? = "",
     val chatList: List<String>? = emptyList(),
     val favorites: List<String>? = emptyList(),
+    var blocked: List<String>? = emptyList(),
     var bio: String? = "",
     var latestMessage: MessageData? = null,
     var token : String? = "",

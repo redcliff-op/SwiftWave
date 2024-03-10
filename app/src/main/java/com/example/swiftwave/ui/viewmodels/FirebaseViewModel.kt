@@ -19,6 +19,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,8 @@ class FirebaseViewModel(
     val chatListUsers: StateFlow<List<UserData>> = _chatListUsers
     private val _favorites = MutableStateFlow<List<UserData>>(emptyList())
     val favorites : StateFlow<List<UserData>> = _favorites
+    private val _blockedUsers = MutableStateFlow<List<UserData>>(emptyList())
+    val blockedUsers : StateFlow<List<UserData>> = _blockedUsers
     private val _searchContacts = MutableStateFlow<List<UserData>>(emptyList())
     val searchContacts : StateFlow<List<UserData>> = _searchContacts
     private var conversationsListener: ListenerRegistration? = null
@@ -76,6 +79,7 @@ class FirebaseViewModel(
             val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
             val currentUser = currentUserDoc.get().await().toObject(UserData::class.java)
             if (currentUser != null) {
+                fetchBlockedUsersData()
                 val friendQueries = mutableListOf<Task<DocumentSnapshot>>()
                 val latestMessageQueries = mutableListOf<Task<DocumentSnapshot>>()
                 val favoriteQueries = mutableListOf<Task<DocumentSnapshot>>()
@@ -121,6 +125,20 @@ class FirebaseViewModel(
         }
     }
 
+    fun fetchBlockedUsersData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val blockedUsersIds = currentUserDoc.get().await().toObject(UserData::class.java)?.blocked ?: emptyList()
+            val blockedUsersData = mutableListOf<UserData>()
+            for (userId in blockedUsersIds) {
+                val blockedUserDoc = firebase.collection("users").document(userId)
+                val blockedUserData = blockedUserDoc.get().await().toObject(UserData::class.java)
+                blockedUserData?.let { blockedUsersData.add(it) }
+            }
+            _blockedUsers.value = blockedUsersData
+        }
+    }
+
     fun setupLatestMessageListener() {
         viewModelScope.launch(Dispatchers.IO) {
             chatListUsers.value.forEach { user ->
@@ -158,6 +176,7 @@ class FirebaseViewModel(
                 if(!currentUser?.status.isNullOrEmpty()){
                     curUserStatus = true
                 }
+                userData.blocked = currentUser?.blocked
             }
         }
     }
@@ -560,4 +579,23 @@ class FirebaseViewModel(
         }
     }
 
+    fun blockUser(userIdToBlock: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _blockedUsers.value += _chatListUsers.value.first { it.userId == userIdToBlock }
+            _chatListUsers.value = _chatListUsers.value.filter { it.userId != userIdToBlock }
+            _favorites.value = _favorites.value.filter { it.userId != userIdToBlock }
+            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            currentUserDoc.update("blocked", FieldValue.arrayUnion(userIdToBlock))
+        }
+    }
+
+    fun unblockUser(userIdToUnblock: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            currentUserDoc.update("blocked", FieldValue.arrayRemove(userIdToUnblock))
+                .addOnSuccessListener {
+                    _blockedUsers.value = _blockedUsers.value.filter { it.userId != userIdToUnblock }
+                }
+        }
+    }
 }

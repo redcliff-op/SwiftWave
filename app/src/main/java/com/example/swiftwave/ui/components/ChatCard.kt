@@ -122,12 +122,16 @@ fun chatCard(
                 )
                 .combinedClickable(
                     onLongClick = {
-                        firebaseViewModel.selectedMessage = messageData
-                        taskViewModel.chatOptions = true
+                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                            firebaseViewModel.selectedMessage = messageData
+                            taskViewModel.chatOptions = true
+                        }
                     },
                     onClick = {
-                        taskViewModel.chatOptions = false
-                        firebaseViewModel.selectedMessage = null
+                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                            taskViewModel.chatOptions = false
+                            firebaseViewModel.selectedMessage = null
+                        }
                     }
                 )
         ){

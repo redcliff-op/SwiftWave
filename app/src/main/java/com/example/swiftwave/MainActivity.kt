@@ -42,6 +42,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.swiftwave.auth.GoogleAuthUiClient
 import com.example.swiftwave.ui.screens.accountScreen
+import com.example.swiftwave.ui.screens.blockedScreen
 import com.example.swiftwave.ui.screens.chatScreen
 import com.example.swiftwave.ui.screens.editBioScreen
 import com.example.swiftwave.ui.screens.favoritesScreen
@@ -269,6 +270,11 @@ class MainActivity : ComponentActivity() {
                                     firebaseViewModel = firebaseViewModel,
                                     taskViewModel = taskViewModel,
                                     navController = navController
+                                )
+                            }
+                            composable(route = "BlockedScreen"){
+                                blockedScreen(
+                                    firebaseViewModel = firebaseViewModel
                                 )
                             }
                         }

@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +41,7 @@ import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun accountScreen(
     userData: UserData?,
@@ -161,6 +165,49 @@ fun accountScreen(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
+        }
+        Spacer(modifier = Modifier.size(20.dp))
+        Text(
+            text = "Settings",
+            fontSize = 25.sp,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent
+            ),
+            onClick = {
+                navController.navigate("BlockedScreen")
+            }
+        ) {
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Column {
+                    Text(
+                        text = "Blocked Users",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Manage Blocked Users",
+                        fontSize = 15.sp,
+                        color = Color.Gray
+                    )
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.blockicon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
         }
     }
 }

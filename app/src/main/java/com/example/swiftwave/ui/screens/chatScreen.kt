@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,8 @@ import com.example.swiftwave.ui.components.PersonCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +47,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.CustomDialog
 import kotlinx.coroutines.launch
 
@@ -57,6 +62,7 @@ fun chatScreen(
 ){
     firebaseViewModel.loadChatListUsers()
     val chatListUsers = firebaseViewModel.chatListUsers.collectAsState()
+    val blockedUsers = firebaseViewModel.blockedUsers.collectAsState()
     if(taskViewModel.showDialog){
         CustomDialog(
             taskViewModel = taskViewModel,
@@ -99,7 +105,7 @@ fun chatScreen(
             modifier = Modifier.fillMaxWidth()
         ){
             items(
-                items = chatListUsers.value.sortedByDescending { it.latestMessage?.time },
+                items = chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time },
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(
@@ -129,23 +135,49 @@ fun chatScreen(
                             Row (
                                 modifier = Modifier.fillMaxSize()
                             ){
-                                AnimatedVisibility(visible = dismissState.targetValue == DismissValue.DismissedToStart) {
+                                AnimatedVisibility(
+                                    visible = dismissState.targetValue == DismissValue.DismissedToStart,
+                                    enter = slideInHorizontally (
+                                        initialOffsetX = { fullWidth -> fullWidth }
+                                    ),
+                                    exit = slideOutHorizontally(
+                                        targetOffsetX = { fullWidth -> fullWidth }
+                                    )
+                                ) {
                                     Row (
                                         modifier = Modifier.fillMaxSize(),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ){
                                         Column {
-                                            Text(text = "Remove Contacts and all Chats?")
-                                            Text(text = "This operation is Irreversible")
+                                            Text(text = "Delete or Block User ?")
                                         }
                                         IconButton(onClick = { scope.launch { dismissState.reset() } }) {
                                             Icon(Icons.Rounded.Refresh, contentDescription = "Refresh")
                                         }
                                         IconButton(onClick = {
                                             firebaseViewModel.deleteFriend(userData.userId.toString())
+                                            Toast.makeText(
+                                                ctx,
+                                                "Contact and Chats Deleted",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }) {
                                             Icon(Icons.Rounded.Delete, contentDescription = "Delete")
+                                        }
+                                        IconButton(onClick = {
+                                            firebaseViewModel.blockUser(userData.userId.toString())
+                                            Toast.makeText(
+                                                ctx,
+                                                "Blocked User, you can manage blocked users in Settings",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.blockicon),
+                                                contentDescription = "Delete",
+                                                modifier = Modifier.size(24.dp)
+                                            )
                                         }
                                     }
                                 }
@@ -161,6 +193,7 @@ fun chatScreen(
                                         }
                                         IconButton(onClick = {
                                             firebaseViewModel.addUserToFavorites(userData.mail.toString(),ctx)
+                                            scope.launch { dismissState.reset() }
                                         }) {
                                             Icon(Icons.Rounded.Favorite, contentDescription = "Favorites")
                                         }
