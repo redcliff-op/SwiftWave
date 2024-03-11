@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -268,10 +270,19 @@ fun ImageDialog(
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = firebaseViewModel.imageString,
                     contentDescription = null,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    loading = {
+                        Row (
+                            modifier =  Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            CircularProgressIndicator()
+                        }
+                    }
                 )
                 if(firebaseViewModel.imageViewText.isNotBlank()){
                     Text(

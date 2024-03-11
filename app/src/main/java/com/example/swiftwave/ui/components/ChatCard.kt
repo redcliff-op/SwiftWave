@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -182,7 +184,7 @@ fun chatCard(
                         }
                     ){
                         if(messageData.image!=null){
-                            AsyncImage(
+                            SubcomposeAsyncImage(
                                 model = messageData.image,
                                 contentDescription = null,
                                 modifier = Modifier
@@ -206,7 +208,15 @@ fun chatCard(
                                                 firebaseViewModel.chattingWith?.profilePictureUrl.toString()
                                         }
                                     },
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                loading = {
+                                    Row (
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+                                        CircularProgressIndicator()
+                                    }
+                                }
                             )
                         }
                         if(messageData.message?.isNotEmpty() == true){
