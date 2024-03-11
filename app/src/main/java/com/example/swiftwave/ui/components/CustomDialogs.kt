@@ -271,6 +271,7 @@ fun ImageDialog(
                 AsyncImage(
                     model = firebaseViewModel.imageString,
                     contentDescription = null,
+                    modifier = Modifier.weight(1f)
                 )
                 if(firebaseViewModel.imageViewText.isNotBlank()){
                     Text(
