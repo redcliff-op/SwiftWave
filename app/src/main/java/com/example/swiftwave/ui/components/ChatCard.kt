@@ -253,7 +253,7 @@ fun chatCard(
                                 modifier = Modifier.padding(end = 10.dp),
                                 fontSize = 12.sp,
                             )
-                            AnimatedVisibility(visible = !(messageData.otherUserReaction.isNullOrBlank())) {
+                            if(!(messageData.otherUserReaction.isNullOrBlank())) {
                                 Box(
                                     modifier = Modifier
                                         .background(
@@ -285,7 +285,7 @@ fun chatCard(
                                 Spacer(modifier = Modifier.size(5.dp))
                             }
                             Spacer(modifier = Modifier.size(5.dp))
-                            AnimatedVisibility(visible = !(messageData.curUserReaction.isNullOrBlank())) {
+                            if(!(messageData.curUserReaction.isNullOrBlank())) {
                                 Box(
                                     modifier = Modifier
                                         .background(

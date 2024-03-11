@@ -31,10 +31,17 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Favorite
@@ -42,15 +49,22 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.swiftwave.R
+import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.ui.components.CustomDialog
+import com.example.swiftwave.ui.components.ImageDialog
+import com.example.swiftwave.ui.components.StatusCard
+import com.example.swiftwave.ui.components.StoryCard
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -63,8 +77,16 @@ fun chatScreen(
     firebaseViewModel.loadChatListUsers()
     val chatListUsers = firebaseViewModel.chatListUsers.collectAsState()
     val blockedUsers = firebaseViewModel.blockedUsers.collectAsState()
+    val filteredUsers = firebaseViewModel.searchContacts.collectAsState()
+    val statusList = firebaseViewModel.usersWithStatus.collectAsState()
     if(taskViewModel.showDialog){
         CustomDialog(
+            taskViewModel = taskViewModel,
+            firebaseViewModel = firebaseViewModel
+        )
+    }
+    if(taskViewModel.showImageDialog){
+        ImageDialog(
             taskViewModel = taskViewModel,
             firebaseViewModel = firebaseViewModel
         )
@@ -76,7 +98,7 @@ fun chatScreen(
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row (
             modifier = Modifier.fillMaxWidth(0.9f),
@@ -85,27 +107,81 @@ fun chatScreen(
         ){
             Text(
                 text = "Chats",
-                fontSize = 50.sp,
+                fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            IconButton(
-                onClick = {
-                    navController.navigate("SearchScreen")
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp)
+        }
+        Spacer(modifier = Modifier.size(5.dp))
+        OutlinedTextField(
+            value = firebaseViewModel.searchContact,
+            onValueChange = {
+                newValue -> firebaseViewModel.searchContact = newValue
+                firebaseViewModel.filterContacts(firebaseViewModel.chatListUsers.value,firebaseViewModel.searchContact)
+            },
+            label = { Text("Search") },
+            placeholder = { Text(text = "Search By Name or Email")},
+            leadingIcon = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.size(30.dp))
+                    Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Search,
+            ),
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(30.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
+                unfocusedBorderColor = Color.Transparent,
+                focusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
+            )
+        )
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth(0.9f),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top
+        ) {
+            items(statusList.value){ UserData ->
+                StoryCard(
+                    userData = UserData,
+                    taskViewModel = taskViewModel,
+                    firebaseViewModel = firebaseViewModel
                 )
+                Spacer(modifier = Modifier.size(10.dp))
             }
         }
+        Spacer(modifier = Modifier.size(20.dp))
+        Row (
+            modifier = Modifier.fillMaxWidth(0.9f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(
+                text = "Message",
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         LazyColumn(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 80.dp)
         ){
             items(
-                items = chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time },
+                items = if(filteredUsers.value.isEmpty()){
+                    chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }
+                }else{
+                    filteredUsers.value
+                },
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberDismissState(

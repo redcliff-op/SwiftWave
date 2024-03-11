@@ -70,7 +70,7 @@ fun accountScreen(
     ){
         Text(
             text = "Account",
-            fontSize = 50.sp,
+            fontSize = 35.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )

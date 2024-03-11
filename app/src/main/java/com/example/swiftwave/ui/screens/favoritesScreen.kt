@@ -80,7 +80,7 @@ fun favoritesScreen(
         ){
             Text(
                 text = "Favorites",
-                fontSize = 50.sp,
+                fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )

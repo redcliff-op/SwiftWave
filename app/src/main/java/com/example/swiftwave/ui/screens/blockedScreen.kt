@@ -35,7 +35,7 @@ fun blockedScreen(
         ) {
             Text(
                 text = "Blocked Users",
-                fontSize = 40.sp,
+                fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )

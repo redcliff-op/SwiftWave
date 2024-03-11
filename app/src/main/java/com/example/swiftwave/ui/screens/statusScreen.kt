@@ -42,9 +42,8 @@ fun statusScreen(
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
-    println(firebaseViewModel.curUserStatus)
     firebaseViewModel.loadChatListUsers()
-    val userList = firebaseViewModel.chatListUsers.collectAsState(initial = emptyList())
+    val userList = firebaseViewModel.usersWithStatus.collectAsState(initial = emptyList())
     if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
         SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
@@ -75,7 +74,7 @@ fun statusScreen(
         ) {
             Text(
                 text = "Status",
-                fontSize = 50.sp,
+                fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -113,12 +112,14 @@ fun statusScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            if(firebaseViewModel.curUserStatus){
+                            if (firebaseViewModel.curUserStatus) {
                                 firebaseViewModel.chattingWith = firebaseViewModel.userData
-                                firebaseViewModel.imageString = firebaseViewModel.userData.status.toString()
+                                firebaseViewModel.imageString =
+                                    firebaseViewModel.userData.status.toString()
                                 taskViewModel.showImageDialog = true
                                 taskViewModel.showDeleteStatusOption = true
-                                firebaseViewModel.imageDialogProfilePicture = firebaseViewModel.profilePicture
+                                firebaseViewModel.imageDialogProfilePicture =
+                                    firebaseViewModel.profilePicture
                             }
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -163,19 +164,11 @@ fun statusScreen(
         Spacer(modifier = Modifier.size(10.dp))
         LazyColumn{
             items(userList.value){ UserData ->  
-                if(UserData.status.toString().isNotEmpty()){
-                    if(UserData.statusExpiry!=null){
-                        if(UserData.statusExpiry!! > System.currentTimeMillis()){
-                            StatusCard(
-                                userData = UserData,
-                                taskViewModel = taskViewModel,
-                                firebaseViewModel = firebaseViewModel
-                            )
-                        }else{
-                            firebaseViewModel.deleteStatus(UserData)
-                        }
-                    }
-                }
+                StatusCard(
+                    userData = UserData ,
+                    taskViewModel = taskViewModel,
+                    firebaseViewModel = firebaseViewModel
+                )
             }
         }
     }
