@@ -6,8 +6,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,22 +108,11 @@ fun personChatScreen(
             .fillMaxSize()
     ){
         Image(
-            painter = painterResource(
-                id = if(isSystemInDarkTheme()){
-                    R.drawable.chatbg
-                }else{
-                    R.drawable.chatlightbg
-                }
-            ),
+            painter = painterResource(id = R.drawable.chatbg),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
-            colorFilter =
-            if (isSystemInDarkTheme()){
-                ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(0.5f), blendMode = BlendMode.Overlay)
-            }else{
-                ColorFilter.tint(MaterialTheme.colorScheme.primaryContainer.copy(0.5f), blendMode = BlendMode.Overlay)
-            }
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(0.5f), blendMode = BlendMode.Overlay)
         )
         Column(
             modifier = Modifier
@@ -136,15 +123,14 @@ fun personChatScreen(
         ) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp)
-                    ),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(
+                    bottomStart = 20.dp,
+                    bottomEnd = 20.dp
                 ),
-                shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 onClick = {
                     taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
                 }
@@ -444,8 +430,8 @@ fun personChatScreen(
                             .weight(1f),
                         maxLines = 4,
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.8f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
                             unfocusedBorderColor = Color.Transparent,
                         ),
                         trailingIcon = {

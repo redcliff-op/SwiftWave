@@ -71,7 +71,7 @@ fun chatCard(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                     shape = CircleShape
                                 )
                                 .combinedClickable(
@@ -117,7 +117,7 @@ fun chatCard(
                 .background(
                     color =
                     if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString()) {
-                        MaterialTheme.colorScheme.onPrimary
+                        MaterialTheme.colorScheme.secondary.copy(0.5f)
                     } else {
                         Color.Transparent
                     }
@@ -169,9 +169,9 @@ fun chatCard(
                     colors = CardDefaults.cardColors(
                         containerColor =
                         if(messageData.senderID==firebaseViewModel.userData.userId){
-                            MaterialTheme.colorScheme.inversePrimary.copy(0.8f)
+                            MaterialTheme.colorScheme.primaryContainer
                         }else{
-                            MaterialTheme.colorScheme.secondaryContainer.copy(0.8f)
+                            MaterialTheme.colorScheme.surface
                         }
                     )
                 ) {
@@ -257,7 +257,7 @@ fun chatCard(
                                 Box(
                                     modifier = Modifier
                                         .background(
-                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                             shape = RoundedCornerShape(20.dp)
                                         )
                                         .padding(3.dp)
@@ -289,7 +289,7 @@ fun chatCard(
                                 Box(
                                     modifier = Modifier
                                         .background(
-                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                             shape = RoundedCornerShape(20.dp)
                                         )
                                         .padding(3.dp)
