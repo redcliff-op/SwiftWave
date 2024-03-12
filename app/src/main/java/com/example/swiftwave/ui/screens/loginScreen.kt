@@ -1,6 +1,8 @@
 package com.example.swiftwave.ui.screens
 
+import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,19 +16,30 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.swiftwave.R
 import com.example.swiftwave.auth.SignInState
 
@@ -36,6 +49,17 @@ fun loginScreen(
     onSignInClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            if (SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
+
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
             Toast.makeText(
@@ -47,7 +71,7 @@ fun loginScreen(
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(130, 194, 227 )
+        color = Color.White
     ) {
         Column(
             modifier = Modifier
@@ -55,111 +79,66 @@ fun loginScreen(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceAround
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.loginicon),
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(context).data(data = R.drawable.login).apply(block = {
+                        size(Size.ORIGINAL)
+                    }).build(), imageLoader = imageLoader
+                ),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary, blendMode = BlendMode.Color),
                 contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(250.dp)
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth(0.8f),
             )
-            Spacer(modifier = Modifier.size(50.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Say hello to a world of Endless Possibilities. Let the chatting begin!",
+                    text = "SwiftWave",
+                    fontSize = 45.sp,
                     color = Color.Black,
-                    lineHeight = 45.sp,
-                    fontSize = 35.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 25.dp)
                 )
-                Spacer(modifier = Modifier.size(20.dp))
+                Text(
+                    text = "Your Gateway to Global Chatter!" ,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Button(
-                    onClick = {onSignInClick()},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(51, 129, 169 )
-                    )
+                    onClick = {onSignInClick()}
                 ) {
                     Row (
                         modifier = Modifier
                             .fillMaxWidth(0.7f),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
+                        horizontalArrangement = Arrangement.Center
                     ){
                         Text(
                             text = "Get Started",
-                            fontSize = 30.sp,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(10.dp),
-                            color = Color.White
                         )
+                        Spacer(modifier = Modifier.size(10.dp))
                         Icon(
                             painter = painterResource(id = R.drawable.googleicon),
                             contentDescription = null,
                             tint = Color.Unspecified,
-                            modifier = Modifier.size(50.dp)
+                            modifier = Modifier.size(25.dp)
                         )
                     }
-                }
-            }
-        }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.loginicon),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(250.dp)
-        )
-        Spacer(modifier = Modifier.size(50.dp))
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "Say hello to a world of Endless Possibilities. Let the chatting begin!",
-                color = Color.Black,
-                lineHeight = 45.sp,
-                fontSize = 35.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 25.dp)
-            )
-            Spacer(modifier = Modifier.size(20.dp))
-            Button(
-                onClick = {onSignInClick()},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(51, 129, 169 )
-                )
-            ) {
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ){
-                    Text(
-                        text = "Get Started",
-                        fontSize = 30.sp,
-                        modifier = Modifier.padding(10.dp),
-                        color = Color.White
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.googleicon),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(50.dp)
-                    )
                 }
             }
         }
