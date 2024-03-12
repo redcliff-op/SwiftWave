@@ -211,11 +211,13 @@ class FirebaseViewModel(
                         .await()
                 }
             }else{
-                Toast.makeText(
-                    context,
-                    "Given User has not Registered on the App!",
-                    Toast.LENGTH_SHORT
-                ).show()
+                viewModelScope.launch (Dispatchers.Main){
+                    Toast.makeText(
+                        context,
+                        "Given User has not Registered on the App!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
