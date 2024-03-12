@@ -165,7 +165,16 @@ fun chatCard(
                 Card(
                     modifier = Modifier
                         .padding(5.dp),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = if(messageData.image!=null){
+                        RoundedCornerShape(
+                            topEnd = 10.dp,
+                            topStart = 10.dp,
+                            bottomEnd = 30.dp,
+                            bottomStart = 30.dp
+                        )
+                    }else{
+                        RoundedCornerShape(30.dp)
+                    },
                     colors = CardDefaults.cardColors(
                         containerColor =
                         if(messageData.senderID==firebaseViewModel.userData.userId){
@@ -224,9 +233,9 @@ fun chatCard(
                                 text = messageData.message.toString(),
                                 modifier = Modifier
                                     .padding(
-                                        start = 10.dp,
-                                        top = 5.dp,
-                                        end = 10.dp
+                                        start = 15.dp,
+                                        top = 10.dp,
+                                        end = 15.dp
                                     ),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -250,7 +259,7 @@ fun chatCard(
                             Text(
                                 text = taskViewModel.getTime(messageData.time?.toLong() ?: 0),
                                 color = Color.Gray,
-                                modifier = Modifier.padding(end = 10.dp),
+                                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                                 fontSize = 12.sp,
                             )
                             if(!(messageData.otherUserReaction.isNullOrBlank())) {
