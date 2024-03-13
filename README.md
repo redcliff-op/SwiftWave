@@ -30,7 +30,7 @@ A Fully Functional Online Chat Application Built on MVVM architecture using Kotl
 6) Compose Animations
 7) Material3 ColorScheme
 
-**Screenshots and Clips - **
+**Screenshots and Clips -**
 
 https://github.com/redcliff-op/SwiftWave/assets/78088434/499ae7dc-2e70-4baa-8d80-a6db399e991b
 
