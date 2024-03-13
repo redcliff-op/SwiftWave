@@ -144,19 +144,21 @@ fun chatScreen(
                 focusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
             )
         )
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth(0.9f),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Top
-        ) {
-            items(statusList.value){ UserData ->
-                StoryCard(
-                    userData = UserData,
-                    taskViewModel = taskViewModel,
-                    firebaseViewModel = firebaseViewModel
-                )
-                Spacer(modifier = Modifier.size(10.dp))
+        AnimatedVisibility(visible = statusList.value.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Top
+            ) {
+                items(statusList.value){ UserData ->
+                    StoryCard(
+                        userData = UserData,
+                        taskViewModel = taskViewModel,
+                        firebaseViewModel = firebaseViewModel
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
             }
         }
         Spacer(modifier = Modifier.size(20.dp))
