@@ -19,5 +19,6 @@ data class UserData(
     var latestMessage: MessageData? = null,
     var token : String? = "",
     var status: String? = "",
-    var statusExpiry: Long? = 0
+    var statusExpiry: Long? = 0,
+    var online: Boolean? = false
 )

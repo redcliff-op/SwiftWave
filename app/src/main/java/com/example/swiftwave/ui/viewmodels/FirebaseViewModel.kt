@@ -146,6 +146,13 @@ class FirebaseViewModel() : ViewModel() {
                         }
                         loadChatListUsers()
                     }
+                firebase.collection("users").document(user.userId!!)
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            return@addSnapshotListener
+                        }
+                        loadChatListUsers()
+                    }
             }
         }
     }
@@ -647,6 +654,13 @@ class FirebaseViewModel() : ViewModel() {
                 }
             }
             _usersWithStatus.value = userList
+        }
+    }
+
+    fun updateOnlineStatus(status: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
+            userDocumentRef.update("online", status)
         }
     }
 }

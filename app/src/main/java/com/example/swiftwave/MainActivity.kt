@@ -179,6 +179,7 @@ class MainActivity : ComponentActivity() {
                                     if(googleAuthUiClient.getSignedInUser() != null) {
                                         taskViewModel.isSignedIn = true
                                         firebaseViewModel.userData = googleAuthUiClient.getSignedInUser()
+                                        firebaseViewModel.updateOnlineStatus(true)
                                         firebaseViewModel.addUserToFirestore(firebaseViewModel.userData!!)
                                         firebaseViewModel.getToken()
                                         firebaseViewModel.setupLatestMessageListener()
@@ -210,6 +211,7 @@ class MainActivity : ComponentActivity() {
                                         ).show()
                                         taskViewModel.isSignedIn = true
                                         firebaseViewModel.userData = googleAuthUiClient.getSignedInUser()
+                                        firebaseViewModel.updateOnlineStatus(true)
                                         firebaseViewModel.addUserToFirestore(firebaseViewModel.userData!!)
                                         firebaseViewModel.getToken()
                                         firebaseViewModel.setupLatestMessageListener()
@@ -272,5 +274,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        firebaseViewModel.updateOnlineStatus(false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        firebaseViewModel.updateOnlineStatus(true)
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        firebaseViewModel.updateOnlineStatus(false)
     }
 }

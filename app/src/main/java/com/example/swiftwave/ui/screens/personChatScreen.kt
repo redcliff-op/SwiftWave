@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +75,7 @@ fun personChatScreen(
 ){
     firebaseViewModel.getMessagesWithUser()
     val chatList = firebaseViewModel.chatMessages.collectAsState()
+    val userList by firebaseViewModel.chatListUsers.collectAsState()
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {uri -> firebaseViewModel.imageUri = uri}
@@ -158,20 +159,25 @@ fun personChatScreen(
                             .clip(shape = CircleShape)
                     )
                     Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = firebaseViewModel.chattingWith?.username.toString(),
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
+                    Column(
                         modifier = Modifier.weight(1f),
-                        maxLines =
-                        if(taskViewModel.expandedPersonInfo){
-                            2
-                        }else{
-                            1
-                        },
-                        overflow = TextOverflow.Ellipsis
-                    )
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = firebaseViewModel.chattingWith?.username.toString(),
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        AnimatedVisibility(visible = userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.online==true) {
+                            Text(
+                                text = "Online",
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
                 }
                 IconButton(onClick = {
                     taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
