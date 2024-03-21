@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +48,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -57,7 +60,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.DeleteMessageDialog
 import com.example.swiftwave.ui.components.ImageDialog
@@ -81,11 +90,21 @@ fun personChatScreen(
         onResult = {uri -> firebaseViewModel.imageUri = uri}
     )
     val ctx = LocalContext.current
+    val imageLoader = ImageLoader.Builder(ctx)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
     DisposableEffect(Unit){
         taskViewModel.showNavBar = false
         onDispose {
             taskViewModel.showNavBar = true
             taskViewModel.expandedPersonInfo = false
+            firebaseViewModel.text = ""
             firebaseViewModel.stopConversationsListener()
             firebaseViewModel._chatMessages.value = emptyList()
         }
@@ -352,6 +371,25 @@ fun personChatScreen(
                         )
                     }
                 }
+                AnimatedVisibility(visible =userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.typing == firebaseViewModel.userData?.userId) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(ctx).data(data = R.drawable.typing).apply(block = {
+                                    size(Size.ORIGINAL)
+                                }).build(), imageLoader = imageLoader
+                            ),
+                            modifier = Modifier.size(80.dp),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = null,
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = "Typing...", fontWeight = FontWeight.Bold)
+                    }
+                }
                 AnimatedVisibility(visible = firebaseViewModel.imageUri!=null){
                     ElevatedCard{
                         Column(
@@ -427,7 +465,10 @@ fun personChatScreen(
                     ){
                         OutlinedTextField(
                             value = firebaseViewModel.text,
-                            onValueChange = {newText -> firebaseViewModel.text = newText},
+                            onValueChange = {
+                                newText -> firebaseViewModel.text = newText
+                                firebaseViewModel.updateTypingStatus()
+                            },
                             shape = RoundedCornerShape(30.dp),
                             label = {
                                 Text(

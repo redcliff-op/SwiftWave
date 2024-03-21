@@ -663,4 +663,18 @@ class FirebaseViewModel() : ViewModel() {
             userDocumentRef.update("online", status)
         }
     }
+
+    fun updateTypingStatus(typing :Boolean? = true) {
+        viewModelScope.launch (Dispatchers.IO){
+            val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
+            if(typing==false){
+                userDocumentRef.update("typing", "")
+            }
+            else if(text.isEmpty()){
+                userDocumentRef.update("typing", "")
+            }else{
+                userDocumentRef.update("typing", chattingWith?.userId)
+            }
+        }
+    }
 }

@@ -20,5 +20,6 @@ data class UserData(
     var token : String? = "",
     var status: String? = "",
     var statusExpiry: Long? = 0,
-    var online: Boolean? = false
+    var online: Boolean? = false,
+    var typing: String? = ""
 )

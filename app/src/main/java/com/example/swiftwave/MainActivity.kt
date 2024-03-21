@@ -278,6 +278,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        firebaseViewModel.updateTypingStatus(false)
         firebaseViewModel.updateOnlineStatus(false)
     }
 
@@ -287,6 +288,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onDestroy() {
         super.onDestroy()
+        firebaseViewModel.updateTypingStatus(false)
         firebaseViewModel.updateOnlineStatus(false)
     }
 }
