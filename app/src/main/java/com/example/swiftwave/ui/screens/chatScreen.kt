@@ -1,6 +1,10 @@
 package com.example.swiftwave.ui.screens
 
+import android.Manifest
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -74,6 +78,12 @@ fun chatScreen(
     firebaseViewModel: FirebaseViewModel,
     navController: NavController
 ){
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()){}
+    LaunchedEffect(key1 = true){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     firebaseViewModel.loadChatListUsers()
     val chatListUsers = firebaseViewModel.chatListUsers.collectAsState()
     val blockedUsers = firebaseViewModel.blockedUsers.collectAsState()
