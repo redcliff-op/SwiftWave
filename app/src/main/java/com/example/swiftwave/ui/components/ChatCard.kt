@@ -65,7 +65,7 @@ fun chatCard(
                     modifier = Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement =
-                        if(firebaseViewModel.userData.userId == messageData.senderID){
+                        if(firebaseViewModel.userData?.userId == messageData.senderID){
                             Arrangement.End
                         }else{
                             Arrangement.Start
@@ -128,13 +128,13 @@ fun chatCard(
                 )
                 .combinedClickable(
                     onLongClick = {
-                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false){
                             firebaseViewModel.selectedMessage = messageData
                             taskViewModel.chatOptions = true
                         }
                     },
                     onClick = {
-                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false){
                             taskViewModel.chatOptions = false
                             firebaseViewModel.selectedMessage = null
                         }
@@ -146,13 +146,13 @@ fun chatCard(
                     .fillMaxWidth()
                     .padding(
                         start =
-                        if (messageData.senderID == firebaseViewModel.userData.userId) {
+                        if (messageData.senderID == firebaseViewModel.userData?.userId) {
                             35.dp
                         } else {
                             0.dp
                         },
                         end =
-                        if (messageData.senderID == firebaseViewModel.userData.userId) {
+                        if (messageData.senderID == firebaseViewModel.userData?.userId) {
                             0.dp
                         } else {
                             35.dp
@@ -160,7 +160,7 @@ fun chatCard(
                     ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement =
-                if(messageData.senderID==firebaseViewModel.userData.userId){
+                if(messageData.senderID==firebaseViewModel.userData?.userId){
                     Arrangement.End
                 }else{
                     Arrangement.Start
@@ -174,9 +174,9 @@ fun chatCard(
                             topEnd = 10.dp,
                             topStart = 10.dp,
                             bottomEnd =
-                            if(messageData.senderID==firebaseViewModel.userData.userId){
+                            if(messageData.senderID==firebaseViewModel.userData?.userId){
                                 if(index!=chatList.size-1){
-                                    if(chatList[index+1].senderID==firebaseViewModel.userData.userId){
+                                    if(chatList[index+1].senderID==firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
                                         30.dp
@@ -188,9 +188,9 @@ fun chatCard(
                                 30.dp
                             },
                             bottomStart =
-                            if(messageData.senderID!=firebaseViewModel.userData.userId){
+                            if(messageData.senderID!=firebaseViewModel.userData?.userId){
                                 if(index!=chatList.size-1){
-                                    if(chatList[index+1].senderID!=firebaseViewModel.userData.userId){
+                                    if(chatList[index+1].senderID!=firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
                                         30.dp
@@ -205,9 +205,9 @@ fun chatCard(
                     }else{
                         RoundedCornerShape(
                             topStart =
-                                if(messageData.senderID!=firebaseViewModel.userData.userId){
+                                if(messageData.senderID!=firebaseViewModel.userData?.userId){
                                     if(index!=0){
-                                        if(chatList[index-1].senderID!=firebaseViewModel.userData.userId){
+                                        if(chatList[index-1].senderID!=firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
                                             30.dp
@@ -219,9 +219,9 @@ fun chatCard(
                                      30.dp
                                 },
                             topEnd =
-                                if(messageData.senderID==firebaseViewModel.userData.userId){
+                                if(messageData.senderID==firebaseViewModel.userData?.userId){
                                     if(index!=0){
-                                        if(chatList[index-1].senderID==firebaseViewModel.userData.userId){
+                                        if(chatList[index-1].senderID==firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
                                             30.dp
@@ -233,9 +233,9 @@ fun chatCard(
                                     30.dp
                                 },
                             bottomStart =
-                            if(messageData.senderID!=firebaseViewModel.userData.userId){
+                            if(messageData.senderID!=firebaseViewModel.userData?.userId){
                                 if(index!=chatList.size-1){
-                                    if(chatList[index+1].senderID!=firebaseViewModel.userData.userId){
+                                    if(chatList[index+1].senderID!=firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
                                         30.dp
@@ -247,9 +247,9 @@ fun chatCard(
                                 30.dp
                             },
                             bottomEnd =
-                                if(messageData.senderID==firebaseViewModel.userData.userId){
+                                if(messageData.senderID==firebaseViewModel.userData?.userId){
                                     if(index!=chatList.size-1){
-                                        if(chatList[index+1].senderID==firebaseViewModel.userData.userId){
+                                        if(chatList[index+1].senderID==firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
                                             30.dp
@@ -264,7 +264,7 @@ fun chatCard(
                     },
                     colors = CardDefaults.cardColors(
                         containerColor =
-                        if(messageData.senderID==firebaseViewModel.userData.userId){
+                        if(messageData.senderID==firebaseViewModel.userData?.userId){
                             MaterialTheme.colorScheme.primaryContainer
                         }else{
                             MaterialTheme.colorScheme.surface
@@ -296,7 +296,7 @@ fun chatCard(
                                         firebaseViewModel.sentBy = messageData.senderID.toString()
                                         taskViewModel.showImageDialog =
                                             !taskViewModel.showImageDialog
-                                        if (firebaseViewModel.sentBy == firebaseViewModel.userData.userId) {
+                                        if (firebaseViewModel.sentBy == firebaseViewModel.userData?.userId) {
                                             firebaseViewModel.imageDialogProfilePicture =
                                                 firebaseViewModel.profilePicture
                                         } else {

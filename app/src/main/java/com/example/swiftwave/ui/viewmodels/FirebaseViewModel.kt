@@ -3,19 +3,14 @@ package com.example.swiftwave.ui.viewmodels
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.data.remote.callNotifAPI
-import com.example.swiftwave.ui.components.StoryCard
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -24,7 +19,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -37,10 +31,9 @@ import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import java.util.UUID
 
-class FirebaseViewModel(
-    val userData: UserData
-) : ViewModel() {
+class FirebaseViewModel() : ViewModel() {
 
+    var userData: UserData? = null
     var chattingWith by mutableStateOf<UserData?>(null)
     var text by mutableStateOf("")
     var imageUri by mutableStateOf<Uri?>(null)
@@ -70,20 +63,11 @@ class FirebaseViewModel(
     val _viewedStatus = MutableStateFlow<MutableList<String?>>(emptyList<String>().toMutableList())
     val viewedStatus : StateFlow<MutableList<String?>> get() = _viewedStatus.asStateFlow()
 
-    init {
-        addUserToFirestore(userData)
-        getToken()
-        viewModelScope.launch {
-            delay(5000)
-            setupLatestMessageListener()
-        }
-    }
-
     fun loadChatListUsers() {
         viewModelScope.launch(Dispatchers.IO) {
             val chatListUsers = mutableListOf<UserData>()
             val favorites = mutableListOf<UserData>()
-            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val currentUserDoc = firebase.collection("users").document(userData?.userId.toString())
             val currentUser = currentUserDoc.get().await().toObject(UserData::class.java)
             if (currentUser != null) {
                 fetchBlockedUsersData()
@@ -94,14 +78,14 @@ class FirebaseViewModel(
 
                 for (userId in currentUser.chatList!!) {
                     val friendRef = firebase.collection("users").document(userId)
-                    val latestMessageRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + userId)
+                    val latestMessageRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + userId)
                     friendQueries.add(friendRef.get())
                     latestMessageQueries.add(latestMessageRef.get())
                 }
 
                 for (userId in currentUser.favorites!!) {
                     val favoriteRef = firebase.collection("users").document(userId)
-                    val favoriteLatestMessageRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + userId)
+                    val favoriteLatestMessageRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + userId)
                     favoriteQueries.add(favoriteRef.get())
                     favoriteLatestMessageQueries.add(favoriteLatestMessageRef.get())
                 }
@@ -136,7 +120,7 @@ class FirebaseViewModel(
 
     fun fetchBlockedUsersData() {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val currentUserDoc = firebase.collection("users").document(userData?.userId.toString())
             val blockedUsersIds = currentUserDoc.get().await().toObject(UserData::class.java)?.blocked ?: emptyList()
             val blockedUsersData = mutableListOf<UserData>()
             for (userId in blockedUsersIds) {
@@ -150,8 +134,9 @@ class FirebaseViewModel(
 
     fun setupLatestMessageListener() {
         viewModelScope.launch(Dispatchers.IO) {
+            delay(5000)
             chatListUsers.value.forEach { user ->
-                firebase.collection("conversations").document(userData.userId.toString())
+                firebase.collection("conversations").document(userData?.userId.toString())
                     .collection(user.userId.toString())
                     .orderBy("time", Query.Direction.DESCENDING)
                     .limit(1)
@@ -165,7 +150,7 @@ class FirebaseViewModel(
         }
     }
 
-    private fun addUserToFirestore(user: UserData) {
+    fun addUserToFirestore(user: UserData) {
         viewModelScope.launch (Dispatchers.IO){
             val userQuery = firebase.collection("users").document(user.userId.toString()).get().await()
 
@@ -178,14 +163,14 @@ class FirebaseViewModel(
                     .await()
             }else{
                 val currentUser = userQuery.toObject(UserData::class.java)
-                userData.bio = currentUser?.bio.toString()
+                userData?.bio = currentUser?.bio.toString()
                 profilePicture = currentUser?.profilePictureUrl.toString()
                 Bio = currentUser?.bio.toString()
-                userData.status = currentUser?.status.toString()
+                userData?.status = currentUser?.status.toString()
                 if(!currentUser?.status.isNullOrEmpty()){
                     curUserStatus = true
                 }
-                userData.blocked = currentUser?.blocked
+                userData?.blocked = currentUser?.blocked
             }
         }
     }
@@ -195,12 +180,12 @@ class FirebaseViewModel(
             val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
             if (!userQuery.isEmpty) {
                 val otherUser = userQuery.documents.first().toObject(UserData::class.java)
-                if (otherUser?.userId != userData.userId) {
-                    firebase.collection("users").document(userData.userId.toString())
+                if (otherUser?.userId != userData?.userId) {
+                    firebase.collection("users").document(userData?.userId.toString())
                         .update("chatList", FieldValue.arrayUnion(otherUser?.userId.toString()))
                         .await()
                     firebase.collection("users").document(otherUser?.userId.toString())
-                        .update("chatList", FieldValue.arrayUnion(userData.userId.toString())).addOnSuccessListener {
+                        .update("chatList", FieldValue.arrayUnion(userData?.userId.toString())).addOnSuccessListener {
                             Toast.makeText(
                                 context,
                                 "User Added to Friend List",
@@ -227,8 +212,8 @@ class FirebaseViewModel(
             val userQuery = firebase.collection("users").whereEqualTo("mail", userMail).get().await()
             if (!userQuery.isEmpty) {
                 val otherUser = userQuery.documents.first().toObject(UserData::class.java)
-                if (otherUser?.userId != userData.userId) {
-                    firebase.collection("users").document(userData.userId.toString())
+                if (otherUser?.userId != userData?.userId) {
+                    firebase.collection("users").document(userData?.userId.toString())
                         .update("favorites", FieldValue.arrayUnion(otherUser?.userId.toString()))
                         .addOnSuccessListener {
                             Toast.makeText(
@@ -247,21 +232,21 @@ class FirebaseViewModel(
     fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData.userId.toString(), currentTime, imageUrl)
-            firebase.collection("conversations").document(userData.userId.toString())
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl)
+            firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
                 .await()
             firebase.collection("conversations").document(otherUserId)
-                .collection(userData.userId.toString())
+                .collection(userData?.userId.toString())
                 .add(messageData)
                 .await()
 
 
-            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + otherUserId)
+            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + otherUserId)
             latestMessageSenderRef.set(messageData)
 
-            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData.userId.toString())
+            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData?.userId.toString())
             latestMessageRecipientRef.set(messageData)
 
             if (imageUrl != null && message.isEmpty()) {
@@ -295,7 +280,7 @@ class FirebaseViewModel(
 
     fun getMessagesWithUser() {
         viewModelScope.launch (Dispatchers.IO) {
-            val messages = firebase.collection("conversations").document(userData.userId.toString())
+            val messages = firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(chattingWith?.userId.toString())
                 .orderBy("time")
                 .get()
@@ -307,7 +292,7 @@ class FirebaseViewModel(
     fun startMessageListener() {
         viewModelScope.launch (Dispatchers.IO){
             conversationsListener = firebase.collection("conversations")
-                .document(userData.userId.toString())
+                .document(userData?.userId.toString())
                 .collection(chattingWith?.userId.toString())
                 .addSnapshotListener { snapshots, error ->
                     if (error != null) {
@@ -324,12 +309,12 @@ class FirebaseViewModel(
 
     fun addBio() {
         viewModelScope.launch(Dispatchers.IO) {
-            val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+            val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
             userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val currentUser = documentSnapshot.toObject(UserData::class.java)
                     currentUser?.bio = Bio
-                    userData.bio
+                    userData?.bio
                     userDocumentRef.set(currentUser!!)
                 }
             }
@@ -339,14 +324,14 @@ class FirebaseViewModel(
     fun deleteFriend(friendUserId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _chatListUsers.value = _chatListUsers.value.filter { it.userId != friendUserId }
-            firebase.collection("users").document(userData.userId.toString())
+            firebase.collection("users").document(userData?.userId.toString())
                 .update("chatList", FieldValue.arrayRemove(friendUserId))
                 .await()
             firebase.collection("users").document(friendUserId)
-                .update("chatList", FieldValue.arrayRemove(userData.userId.toString()))
+                .update("chatList", FieldValue.arrayRemove(userData?.userId.toString()))
                 .await()
             loadChatListUsers()
-            firebase.collection("conversations").document(userData.userId.toString())
+            firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(friendUserId)
                 .get()
                 .addOnSuccessListener { documents ->
@@ -356,7 +341,7 @@ class FirebaseViewModel(
                 }
                 .await()
             firebase.collection("conversations").document(friendUserId)
-                .collection(userData.userId.toString())
+                .collection(userData?.userId.toString())
                 .get()
                 .addOnSuccessListener { documents ->
                     for (document in documents) {
@@ -365,10 +350,10 @@ class FirebaseViewModel(
                 }
                 .await()
 
-            firebase.collection("latest_messages").document(userData.userId.toString() + "_" + friendUserId)
+            firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + friendUserId)
                 .delete()
                 .await()
-            firebase.collection("latest_messages").document(friendUserId + "_" + userData.userId.toString())
+            firebase.collection("latest_messages").document(friendUserId + "_" + userData?.userId.toString())
                 .delete()
                 .await()
         }
@@ -377,7 +362,7 @@ class FirebaseViewModel(
     fun deleteFavorite(friendUserId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _favorites.value = _favorites.value.filter { it.userId != friendUserId }
-            firebase.collection("users").document(userData.userId.toString())
+            firebase.collection("users").document(userData?.userId.toString())
                 .update("favorites", FieldValue.arrayRemove(friendUserId))
                 .await()
             loadChatListUsers()
@@ -387,7 +372,7 @@ class FirebaseViewModel(
     fun deleteMessage(otherUserId: String, messageData: MessageData) {
         viewModelScope.launch(Dispatchers.IO) {
             val senderMessageRef = firebase.collection("conversations")
-                .document(userData.userId.toString())
+                .document(userData?.userId.toString())
                 .collection(otherUserId)
                 .whereEqualTo("message", messageData.message)
                 .whereEqualTo("time", messageData.time)
@@ -396,7 +381,7 @@ class FirebaseViewModel(
 
             val receiverMessageRef = firebase.collection("conversations")
                 .document(otherUserId)
-                .collection(userData.userId.toString())
+                .collection(userData?.userId.toString())
                 .whereEqualTo("message", messageData.message)
                 .whereEqualTo("time", messageData.time)
                 .get()
@@ -410,7 +395,7 @@ class FirebaseViewModel(
             }
 
             val latestMessageSenderRef = firebase.collection("conversations")
-                .document(userData.userId.toString())
+                .document(userData?.userId.toString())
                 .collection(otherUserId)
                 .orderBy("time", Query.Direction.DESCENDING)
                 .limit(1)
@@ -419,7 +404,7 @@ class FirebaseViewModel(
 
             val latestMessageRecipientRef = firebase.collection("conversations")
                 .document(otherUserId)
-                .collection(userData.userId.toString())
+                .collection(userData?.userId.toString())
                 .orderBy("time", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -428,14 +413,14 @@ class FirebaseViewModel(
             val latestMessageSender = latestMessageSenderRef.documents.firstOrNull()?.toObject(MessageData::class.java)
             latestMessageSender?.let {
                 firebase.collection("latest_messages")
-                    .document(userData.userId.toString() + "_" + otherUserId)
+                    .document(userData?.userId.toString() + "_" + otherUserId)
                     .set(it)
             }
 
             val latestMessageRecipient = latestMessageRecipientRef.documents.firstOrNull()?.toObject(MessageData::class.java)
             latestMessageRecipient?.let {
                 firebase.collection("latest_messages")
-                    .document(otherUserId + "_" + userData.userId.toString())
+                    .document(otherUserId + "_" + userData?.userId.toString())
                     .set(it)
             }
 
@@ -461,12 +446,12 @@ class FirebaseViewModel(
 
     // FCM
 
-    private fun getToken(){
+    fun getToken(){
         viewModelScope.launch(Dispatchers.IO) {
             FirebaseMessaging.getInstance().token.addOnSuccessListener {
                 val token = it.toString()
-                userData.token = token
-                val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                userData?.token = token
+                val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
                 userDocumentRef.update("token", token)
             }
         }
@@ -477,9 +462,9 @@ class FirebaseViewModel(
             val jsonObject = JSONObject()
             val notificationObject = JSONObject()
             val dataObject = JSONObject()
-            notificationObject.put("title",userData.username.toString())
+            notificationObject.put("title",userData?.username.toString())
             notificationObject.put("body",message)
-            dataObject.put("userId",userData.userId.toString())
+            dataObject.put("userId",userData?.userId.toString())
             jsonObject.put("notification", notificationObject)
             jsonObject.put("data", dataObject)
             jsonObject.put("to", chattingWith?.token)
@@ -490,12 +475,12 @@ class FirebaseViewModel(
     fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String, reaction :String ? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentUserRef = firebase.collection("conversations")
-                .document(userData.userId.toString())
+                .document(userData?.userId.toString())
                 .collection(otherUserId)
 
             val recipientUserRef = firebase.collection("conversations")
                 .document(otherUserId)
-                .collection(userData.userId.toString())
+                .collection(userData?.userId.toString())
 
             val curUserQuerySnapshot = currentUserRef
                 .whereEqualTo("time", messageTimestamp)
@@ -522,14 +507,14 @@ class FirebaseViewModel(
                 }
             }
 
-            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData.userId.toString() + "_" + otherUserId)
+            val latestMessageSenderRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + otherUserId)
             val latestMessageSenderQuery = currentUserRef.orderBy("time", Query.Direction.DESCENDING).limit(1).get().await()
             val latestMessageSender = latestMessageSenderQuery.documents.firstOrNull()?.toObject(MessageData::class.java)
             latestMessageSender?.let {
                 latestMessageSenderRef.set(it)
             }
 
-            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData.userId.toString())
+            val latestMessageRecipientRef = firebase.collection("latest_messages").document(otherUserId + "_" + userData?.userId.toString())
             val latestMessageRecipientQuery = recipientUserRef.orderBy("time", Query.Direction.DESCENDING).limit(1).get().await()
             val latestMessageRecipient = latestMessageRecipientQuery.documents.firstOrNull()?.toObject(MessageData::class.java)
             latestMessageRecipient?.let {
@@ -540,9 +525,9 @@ class FirebaseViewModel(
 
     fun updateProfilePic() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (imageUri != null && userData.userId!!.isNotEmpty()) {
-                val storageRef = Firebase.storage.reference.child("profilePics/${userData.userId}/${UUID.randomUUID()}")
-                val allProfilePics = Firebase.storage.reference.child("profilePics/${userData.userId}")
+            if (imageUri != null && userData?.userId!!.isNotEmpty()) {
+                val storageRef = Firebase.storage.reference.child("profilePics/${userData?.userId}/${UUID.randomUUID()}")
+                val allProfilePics = Firebase.storage.reference.child("profilePics/${userData?.userId}")
                 allProfilePics.listAll()
                     .addOnSuccessListener { listResult ->
                         listResult.items.forEach { item ->
@@ -560,7 +545,7 @@ class FirebaseViewModel(
                 }.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val downloadUri = task.result
-                        val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                        val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
                         userDocumentRef.update("profilePictureUrl", downloadUri.toString())
                         profilePicture = downloadUri.toString()
                     }
@@ -573,9 +558,9 @@ class FirebaseViewModel(
 
     fun setStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (imageUri != null && userData.userId!!.isNotEmpty()) {
-                val storageRef = Firebase.storage.reference.child("status/${userData.userId}/${UUID.randomUUID()}")
-                val allStatus = Firebase.storage.reference.child("status/${userData.userId}")
+            if (imageUri != null && userData?.userId!!.isNotEmpty()) {
+                val storageRef = Firebase.storage.reference.child("status/${userData?.userId}/${UUID.randomUUID()}")
+                val allStatus = Firebase.storage.reference.child("status/${userData?.userId}")
                 allStatus.listAll()
                     .addOnSuccessListener { listResult ->
                         listResult.items.forEach { item ->
@@ -595,12 +580,12 @@ class FirebaseViewModel(
                         val downloadUri = task.result
                         val currentTimeMillis = System.currentTimeMillis()
                         val expirationTimeMillis = currentTimeMillis + 24 * 60 * 60 * 1000
-                        val userDocumentRef = firebase.collection("users").document(userData.userId.toString())
+                        val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
                         userDocumentRef.update("status", downloadUri.toString())
                         userDocumentRef.update("statusExpiry", expirationTimeMillis)
-                        userData.status = downloadUri.toString()
+                        userData?.status = downloadUri.toString()
                         curUserStatus = true
-                        userData.statusExpiry = expirationTimeMillis
+                        userData?.statusExpiry = expirationTimeMillis
                     }
                 }
             }
@@ -632,14 +617,14 @@ class FirebaseViewModel(
             _blockedUsers.value += _chatListUsers.value.first { it.userId == userIdToBlock }
             _chatListUsers.value = _chatListUsers.value.filter { it.userId != userIdToBlock }
             _favorites.value = _favorites.value.filter { it.userId != userIdToBlock }
-            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val currentUserDoc = firebase.collection("users").document(userData?.userId.toString())
             currentUserDoc.update("blocked", FieldValue.arrayUnion(userIdToBlock))
         }
     }
 
     fun unblockUser(userIdToUnblock: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentUserDoc = firebase.collection("users").document(userData.userId.toString())
+            val currentUserDoc = firebase.collection("users").document(userData?.userId.toString())
             currentUserDoc.update("blocked", FieldValue.arrayRemove(userIdToUnblock))
                 .addOnSuccessListener {
                     _blockedUsers.value = _blockedUsers.value.filter { it.userId != userIdToUnblock }
@@ -648,7 +633,7 @@ class FirebaseViewModel(
     }
     fun updateStatusList(){
         viewModelScope.launch (Dispatchers.IO){
-            var userList = mutableListOf<UserData>()
+            val userList = mutableListOf<UserData>()
             for(UserData in chatListUsers.value){
                 if(UserData.status.toString().isNotEmpty()){
                     if(UserData.statusExpiry!=null){

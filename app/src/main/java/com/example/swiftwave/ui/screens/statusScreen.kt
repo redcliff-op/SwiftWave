@@ -115,7 +115,7 @@ fun statusScreen(
                             if (firebaseViewModel.curUserStatus) {
                                 firebaseViewModel.chattingWith = firebaseViewModel.userData
                                 firebaseViewModel.imageString =
-                                    firebaseViewModel.userData.status.toString()
+                                    firebaseViewModel.userData?.status.toString()
                                 taskViewModel.showImageDialog = true
                                 taskViewModel.showDeleteStatusOption = true
                                 firebaseViewModel.imageDialogProfilePicture =

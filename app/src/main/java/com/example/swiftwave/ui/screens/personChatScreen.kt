@@ -267,7 +267,7 @@ fun personChatScreen(
                         )
                     }
                     Row{
-                        AnimatedVisibility(firebaseViewModel.selectedMessage?.senderID == firebaseViewModel.userData.userId){
+                        AnimatedVisibility(firebaseViewModel.selectedMessage?.senderID == firebaseViewModel.userData?.userId){
                             IconButton(
                                 onClick = {
                                     firebaseViewModel.text = firebaseViewModel.selectedMessage?.message.toString()
@@ -403,7 +403,7 @@ fun personChatScreen(
                         Spacer(modifier = Modifier.size(10.dp))
                     }
                 }
-                if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData.userId.toString()) == true){
+                if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == true){
                     Text(
                         text = "You cannot Message this Person Anymore",
                         fontSize = 15.sp,

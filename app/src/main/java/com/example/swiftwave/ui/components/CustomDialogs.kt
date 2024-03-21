@@ -226,7 +226,7 @@ fun ImageDialog(
                     )
                     Spacer(modifier = Modifier.size(10.dp))
                     Text(
-                        text = if(firebaseViewModel.chattingWith?.userId == firebaseViewModel.userData.userId || firebaseViewModel.sentBy == firebaseViewModel.userData.userId){
+                        text = if(firebaseViewModel.chattingWith?.userId == firebaseViewModel.userData?.userId || firebaseViewModel.sentBy == firebaseViewModel.userData?.userId){
                             "You"
                         }else {
                             firebaseViewModel.chattingWith?.username.toString()
@@ -246,7 +246,7 @@ fun ImageDialog(
                 }
                 if(taskViewModel.showDeleteStatusOption){
                     IconButton(onClick = {
-                        firebaseViewModel.deleteStatus(firebaseViewModel.userData)
+                        firebaseViewModel.userData?.let { firebaseViewModel.deleteStatus(it) }
                         taskViewModel.showImageDialog = false;
                         Toast.makeText(
                             ctx,

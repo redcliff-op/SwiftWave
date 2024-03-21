@@ -79,7 +79,7 @@ fun PersonCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                 )
-                if(userData.blocked?.contains(firebaseViewModel.userData.userId.toString()) == false){
+                if(userData.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false){
                     Row (
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween

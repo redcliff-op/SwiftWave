@@ -57,6 +57,8 @@ import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    val taskViewModel = TaskViewModel()
+    val firebaseViewModel = FirebaseViewModel()
     private val googleAuthUiClient by lazy {
         GoogleAuthUiClient(
             context = applicationContext,
@@ -74,8 +76,6 @@ class MainActivity : ComponentActivity() {
             )
         )
         super.onCreate(savedInstanceState)
-        val taskViewModel = TaskViewModel()
-        lateinit var firebaseViewModel : FirebaseViewModel
         setContent {
             SwiftWaveTheme {
                 Surface(
@@ -178,7 +178,10 @@ class MainActivity : ComponentActivity() {
                                 LaunchedEffect(key1 = googleAuthUiClient.getSignedInUser()) {
                                     if(googleAuthUiClient.getSignedInUser() != null) {
                                         taskViewModel.isSignedIn = true
-                                        firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
+                                        firebaseViewModel.userData = googleAuthUiClient.getSignedInUser()
+                                        firebaseViewModel.addUserToFirestore(firebaseViewModel.userData!!)
+                                        firebaseViewModel.getToken()
+                                        firebaseViewModel.setupLatestMessageListener()
                                         taskViewModel.showNavBar = true
                                         navController.navigate("Chats")
                                     }
@@ -206,7 +209,10 @@ class MainActivity : ComponentActivity() {
                                             Toast.LENGTH_LONG
                                         ).show()
                                         taskViewModel.isSignedIn = true
-                                        firebaseViewModel = FirebaseViewModel(googleAuthUiClient.getSignedInUser()!!)
+                                        firebaseViewModel.userData = googleAuthUiClient.getSignedInUser()
+                                        firebaseViewModel.addUserToFirestore(firebaseViewModel.userData!!)
+                                        firebaseViewModel.getToken()
+                                        firebaseViewModel.setupLatestMessageListener()
                                         taskViewModel.showNavBar = true
                                         navController.navigate("Chats")
                                         viewModel.resetState()
