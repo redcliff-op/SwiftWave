@@ -186,7 +186,7 @@ fun chatScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 80.dp)
+                .padding(bottom = 70.dp)
         ){
             items(
                 items = if(filteredUsers.value.isEmpty()){
