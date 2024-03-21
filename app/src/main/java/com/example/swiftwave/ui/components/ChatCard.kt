@@ -23,6 +23,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,9 +43,11 @@ import com.example.swiftwave.ui.viewmodels.TaskViewModel
 @Composable
 fun chatCard(
     messageData: MessageData,
+    index: Int,
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
+    val chatList by firebaseViewModel.chatMessages.collectAsState()
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -164,16 +168,99 @@ fun chatCard(
             ){
                 Card(
                     modifier = Modifier
-                        .padding(5.dp),
+                        .padding(horizontal = 5.dp),
                     shape = if(messageData.image!=null){
                         RoundedCornerShape(
                             topEnd = 10.dp,
                             topStart = 10.dp,
-                            bottomEnd = 30.dp,
-                            bottomStart = 30.dp
+                            bottomEnd =
+                            if(messageData.senderID==firebaseViewModel.userData.userId){
+                                if(index!=chatList.size-1){
+                                    if(chatList[index+1].senderID==firebaseViewModel.userData.userId){
+                                        5.dp
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                    30.dp
+                                }
+                            }else{
+                                30.dp
+                            },
+                            bottomStart =
+                            if(messageData.senderID!=firebaseViewModel.userData.userId){
+                                if(index!=chatList.size-1){
+                                    if(chatList[index+1].senderID!=firebaseViewModel.userData.userId){
+                                        5.dp
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                    30.dp
+                                }
+                            }else{
+                                30.dp
+                            }
                         )
                     }else{
-                        RoundedCornerShape(30.dp)
+                        RoundedCornerShape(
+                            topStart =
+                                if(messageData.senderID!=firebaseViewModel.userData.userId){
+                                    if(index!=0){
+                                        if(chatList[index-1].senderID!=firebaseViewModel.userData.userId){
+                                            5.dp
+                                        }else{
+                                            30.dp
+                                        }
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                     30.dp
+                                },
+                            topEnd =
+                                if(messageData.senderID==firebaseViewModel.userData.userId){
+                                    if(index!=0){
+                                        if(chatList[index-1].senderID==firebaseViewModel.userData.userId){
+                                            5.dp
+                                        }else{
+                                            30.dp
+                                        }
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                    30.dp
+                                },
+                            bottomStart =
+                            if(messageData.senderID!=firebaseViewModel.userData.userId){
+                                if(index!=chatList.size-1){
+                                    if(chatList[index+1].senderID!=firebaseViewModel.userData.userId){
+                                        5.dp
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                    30.dp
+                                }
+                            }else{
+                                30.dp
+                            },
+                            bottomEnd =
+                                if(messageData.senderID==firebaseViewModel.userData.userId){
+                                    if(index!=chatList.size-1){
+                                        if(chatList[index+1].senderID==firebaseViewModel.userData.userId){
+                                            5.dp
+                                        }else{
+                                            30.dp
+                                        }
+                                    }else{
+                                        30.dp
+                                    }
+                                }else{
+                                    30.dp
+                                }
+                        )
                     },
                     colors = CardDefaults.cardColors(
                         containerColor =

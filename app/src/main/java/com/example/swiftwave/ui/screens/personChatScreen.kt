@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -336,9 +337,10 @@ fun personChatScreen(
                         .weight(1f),
                     reverseLayout = true
                 ) {
-                    items(chatList.value.sortedBy { it.time }.reversed()) { message ->
+                    itemsIndexed(chatList.value.sortedBy { it.time }.reversed()) {index, message ->
                         chatCard(
                             message,
+                            chatList.value.size-1-index,
                             firebaseViewModel,
                             taskViewModel
                         )
