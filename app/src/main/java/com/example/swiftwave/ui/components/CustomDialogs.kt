@@ -1,10 +1,14 @@
 package com.example.swiftwave.ui.components
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,10 +38,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -277,21 +287,53 @@ fun ImageDialog(
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
-                SubcomposeAsyncImage(
-                    model = firebaseViewModel.imageString,
-                    contentDescription = null,
-                    modifier = Modifier.weight(1f),
-                    loading = {
-                        Row (
-                            modifier =  Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ){
-                            CircularProgressIndicator()
+                var scale by remember {
+                    mutableStateOf(1f)
+                }
+                var offset by remember {
+                    mutableStateOf(Offset.Zero)
+                }
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val state =
+                        rememberTransformableState { zoomChange, panChange, rotationChange ->
+                            scale = (scale * zoomChange).coerceIn(1f, 5f)
+                            val extraWidth = (scale - 1) * constraints.maxWidth
+                            val extraHeight = (scale - 1) * constraints.maxHeight
+                            val maxX = extraWidth / 2
+                            val maxY = extraHeight / 2
+                            offset = Offset(
+                                x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
+                                y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY),
+                            )
                         }
-                    }
-                )
-                if(firebaseViewModel.imageViewText.isNotBlank()){
+                    SubcomposeAsyncImage(
+                        model = firebaseViewModel.imageString,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                                translationX = offset.x
+                                translationY = offset.y
+                            }
+                            .transformable(state),
+                        loading = {
+                            Row (
+                                modifier =  Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                CircularProgressIndicator()
+                            }
+                        }
+                    )
+                }
+                AnimatedVisibility(visible = firebaseViewModel.imageViewText.isNotBlank() && scale == 1f){
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
