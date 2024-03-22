@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -39,6 +36,9 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -92,22 +92,22 @@ fun favoritesScreen(
                 items = favorites.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time },
                 key = {it.userId.toString()}
             ){userData ->
-                val dismissState = rememberDismissState(
-                    initialValue = DismissValue.Default,
+                val dismissState = rememberSwipeToDismissBoxState(
+                    initialValue = SwipeToDismissBoxValue.Settled,
                     positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 3 }
                 )
                 LaunchedEffect(userData) {
                     dismissState.reset()
                 }
-                SwipeToDismiss(
+                SwipeToDismissBox(
                     modifier = Modifier.animateItemPlacement(),
                     state = dismissState,
-                    background = {
+                    backgroundContent = {
                         val color by animateColorAsState(
                             when (dismissState.targetValue) {
-                                DismissValue.Default -> Color.Transparent
-                                DismissValue.DismissedToEnd -> MaterialTheme.colorScheme.primaryContainer
-                                DismissValue.DismissedToStart -> MaterialTheme.colorScheme.errorContainer
+                                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primaryContainer
+                                SwipeToDismissBoxValue.Settled -> Color.Transparent
                             }, label = ""
                         )
                         Box(
@@ -119,7 +119,7 @@ fun favoritesScreen(
                             Row (
                                 modifier = Modifier.fillMaxSize()
                             ){
-                                AnimatedVisibility(visible = dismissState.targetValue == DismissValue.DismissedToStart) {
+                                AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
                                     Row (
                                         modifier = Modifier.fillMaxSize(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -157,7 +157,7 @@ fun favoritesScreen(
                                         }
                                     }
                                 }
-                                AnimatedVisibility(visible = dismissState.targetValue == DismissValue.DismissedToEnd){
+                                AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd){
                                     Row (
                                         modifier = Modifier.fillMaxSize(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -182,7 +182,7 @@ fun favoritesScreen(
                             }
                         }
                     },
-                    dismissContent = {
+                    content = {
                         PersonCard(
                             userData = userData,
                             firebaseViewModel = firebaseViewModel,

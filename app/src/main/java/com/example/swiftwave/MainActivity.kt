@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
@@ -79,8 +80,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SwiftWaveTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     val navController = rememberNavController()
                     val bottomBarList = taskViewModel.initialiseBottomNavBar()
@@ -107,10 +107,11 @@ class MainActivity : ComponentActivity() {
                                                         if(taskViewModel.selected == index){
                                                             MaterialTheme.colorScheme.primary
                                                         }else{
-                                                            MaterialTheme.colorScheme.secondary
+                                                            Color.White
                                                         }
                                                     )
-                                                }
+                                                },
+                                                colors = NavigationBarItemColors(Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent,Color.Transparent)
                                             )
                                         }
                                     }
@@ -127,7 +128,8 @@ class MainActivity : ComponentActivity() {
                                 FloatingActionButton(
                                     onClick = {
                                         taskViewModel.showDialog = !taskViewModel.showDialog
-                                    }
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                                 ){
                                     Icon(
                                         imageVector = Icons.Rounded.Add,

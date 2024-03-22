@@ -15,12 +15,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -35,12 +32,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -55,6 +49,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,10 +61,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.swiftwave.R
-import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.ui.components.CustomDialog
 import com.example.swiftwave.ui.components.ImageDialog
-import com.example.swiftwave.ui.components.StatusCard
 import com.example.swiftwave.ui.components.StoryCard
 import kotlinx.coroutines.launch
 
@@ -196,22 +191,22 @@ fun chatScreen(
                 },
                 key = {it.userId.toString()}
             ){userData ->
-                val dismissState = rememberDismissState(
-                    initialValue = DismissValue.Default,
+                val dismissState = rememberSwipeToDismissBoxState(
+                    initialValue = SwipeToDismissBoxValue.Settled,
                     positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 3 }
                 )
                 LaunchedEffect(userData) {
                     dismissState.reset()
                 }
-                SwipeToDismiss(
+                SwipeToDismissBox(
                     modifier = Modifier.animateItemPlacement(),
                     state = dismissState,
-                    background = {
+                    backgroundContent = {
                         val color by animateColorAsState(
                             when (dismissState.targetValue) {
-                                DismissValue.Default -> Color.Transparent
-                                DismissValue.DismissedToEnd -> MaterialTheme.colorScheme.primaryContainer
-                                DismissValue.DismissedToStart -> MaterialTheme.colorScheme.errorContainer
+                                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                SwipeToDismissBoxValue.StartToEnd ->  MaterialTheme.colorScheme.primaryContainer
+                                SwipeToDismissBoxValue.Settled -> Color.Transparent
                             }, label = ""
                         )
                         Box(
@@ -224,7 +219,7 @@ fun chatScreen(
                                 modifier = Modifier.fillMaxSize()
                             ){
                                 AnimatedVisibility(
-                                    visible = dismissState.targetValue == DismissValue.DismissedToStart,
+                                    visible = dismissState.targetValue == SwipeToDismissBoxValue.EndToStart,
                                     enter = slideInHorizontally (
                                         initialOffsetX = { fullWidth -> fullWidth }
                                     ),
@@ -269,7 +264,7 @@ fun chatScreen(
                                         }
                                     }
                                 }
-                                AnimatedVisibility(visible = dismissState.targetValue == DismissValue.DismissedToEnd){
+                                AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd){
                                     Row (
                                         modifier = Modifier.fillMaxSize(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -290,7 +285,7 @@ fun chatScreen(
                             }
                         }
                     },
-                    dismissContent = {
+                    content = {
                         PersonCard(
                             userData = userData,
                             firebaseViewModel = firebaseViewModel,

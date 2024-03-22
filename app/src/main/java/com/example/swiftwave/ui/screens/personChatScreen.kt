@@ -29,7 +29,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,7 +73,6 @@ import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun personChatScreen(
     firebaseViewModel: FirebaseViewModel,
@@ -105,7 +103,7 @@ fun personChatScreen(
             taskViewModel.expandedPersonInfo = false
             firebaseViewModel.text = ""
             firebaseViewModel.stopConversationsListener()
-            firebaseViewModel._chatMessages.value = emptyList()
+            firebaseViewModel.updateTypingStatus(false)
         }
     }
 
@@ -515,6 +513,7 @@ fun personChatScreen(
                         AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
                             IconButton(
                                 onClick = {
+                                    firebaseViewModel.updateTypingStatus(false)
                                     if(taskViewModel.isEditing){
                                         firebaseViewModel.editMessage(
                                             firebaseViewModel.chattingWith?.userId.toString(),

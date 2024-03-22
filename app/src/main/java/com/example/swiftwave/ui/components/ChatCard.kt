@@ -346,7 +346,7 @@ fun chatCard(
                                     ),
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = Color.White
                             )
                         }
                         Row (

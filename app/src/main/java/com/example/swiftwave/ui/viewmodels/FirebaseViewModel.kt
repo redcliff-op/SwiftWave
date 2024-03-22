@@ -671,7 +671,7 @@ class FirebaseViewModel() : ViewModel() {
             if(typing==false){
                 userDocumentRef.update("typing", "")
             }
-            else if(text.isEmpty()){
+            else if(text.isBlank()){
                 userDocumentRef.update("typing", "")
             }else{
                 userDocumentRef.update("typing", chattingWith?.userId)
