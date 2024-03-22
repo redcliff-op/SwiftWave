@@ -532,7 +532,7 @@ class FirebaseViewModel() : ViewModel() {
     }
 
     fun updateProfilePic() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch{
             if (imageUri != null && userData?.userId!!.isNotEmpty()) {
                 val storageRef = Firebase.storage.reference.child("profilePics/${userData?.userId}/${UUID.randomUUID()}")
                 val allProfilePics = Firebase.storage.reference.child("profilePics/${userData?.userId}")
