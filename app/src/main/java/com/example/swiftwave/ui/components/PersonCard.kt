@@ -49,6 +49,7 @@ fun PersonCard(
             containerColor = Color.Transparent
         ),
         onClick = {
+            firebaseViewModel._chatMessages.value = emptyList()
             firebaseViewModel.chattingWith = userData
             firebaseViewModel.startMessageListener()
             navController.navigate("PersonChat")
