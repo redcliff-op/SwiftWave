@@ -1,7 +1,11 @@
 package com.example.swiftwave.ui.screens
 
+import android.Manifest
+import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,6 +52,12 @@ fun loginScreen(
     onSignInClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()){}
+    LaunchedEffect(key1 = true){
+        if (SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     val imageLoader = ImageLoader.Builder(context)
         .components {
             if (SDK_INT >= 28) {
