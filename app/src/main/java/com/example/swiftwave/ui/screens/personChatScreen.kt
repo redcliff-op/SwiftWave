@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,7 +47,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -69,6 +67,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.DeleteMessageDialog
+import com.example.swiftwave.ui.components.EmojiDialog
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.chatCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
@@ -120,6 +119,12 @@ fun personChatScreen(
 
     if(taskViewModel.showImageDialog){
         ImageDialog(
+            taskViewModel = taskViewModel,
+            firebaseViewModel = firebaseViewModel
+        )
+    }
+    if(taskViewModel.allEmojis){
+        EmojiDialog(
             taskViewModel = taskViewModel,
             firebaseViewModel = firebaseViewModel
         )

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
+import com.example.swiftwave.data.model.UserPref
 import com.example.swiftwave.data.remote.callNotifAPI
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
@@ -51,6 +52,8 @@ class FirebaseViewModel() : ViewModel() {
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
     val chatListUsers: StateFlow<List<UserData>> = _chatListUsers
+    val _chatMessages = MutableStateFlow<List<MessageData>>(emptyList())
+    val chatMessages: StateFlow<List<MessageData>> = _chatMessages
     private val _favorites = MutableStateFlow<List<UserData>>(emptyList())
     val favorites : StateFlow<List<UserData>> = _favorites
     private val _blockedUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -178,6 +181,7 @@ class FirebaseViewModel() : ViewModel() {
                     curUserStatus = true
                 }
                 userData?.blocked = currentUser?.blocked
+                userData?.userPref = currentUser?.userPref
             }
         }
     }
@@ -281,9 +285,6 @@ class FirebaseViewModel() : ViewModel() {
             }
         }
     }
-
-    val _chatMessages = MutableStateFlow<List<MessageData>>(emptyList())
-    val chatMessages: StateFlow<List<MessageData>> = _chatMessages
 
     fun getMessagesWithUser() {
         viewModelScope.launch (Dispatchers.IO) {
@@ -674,6 +675,27 @@ class FirebaseViewModel() : ViewModel() {
                 userDocumentRef.update("typing", "")
             }else{
                 userDocumentRef.update("typing", chattingWith?.userId)
+            }
+        }
+    }
+
+    fun updateEmojiPref(emoji: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            userData?.let { user ->
+                if (user.userPref == null) {
+                    user.userPref = UserPref()
+                }
+                user.userPref?.let { userPref ->
+                    if (userPref.recentEmojis == null) {
+                        userPref.recentEmojis = mutableListOf()
+                    }
+                    while (userPref.recentEmojis!!.size >= 6) {
+                        userPref.recentEmojis!!.removeAt(0)
+                    }
+                    userPref.recentEmojis!!.add(emoji)
+                }
+                val userDocumentRef = firebase.collection("users").document(user.userId.toString())
+                userDocumentRef.update("userPref", user.userPref).await()
             }
         }
     }

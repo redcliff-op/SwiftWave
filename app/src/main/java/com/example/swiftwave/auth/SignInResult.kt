@@ -1,6 +1,7 @@
 package com.example.swiftwave.auth
 
 import com.example.swiftwave.data.model.MessageData
+import com.example.swiftwave.data.model.UserPref
 
 data class SignInResult(
     val data: UserData?,
@@ -21,5 +22,6 @@ data class UserData(
     var status: String? = "",
     var statusExpiry: Long? = 0,
     var online: Boolean? = false,
-    var typing: String? = ""
+    var typing: String? = "",
+    var userPref: UserPref? = null
 )

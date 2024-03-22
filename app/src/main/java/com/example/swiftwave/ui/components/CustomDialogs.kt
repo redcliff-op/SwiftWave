@@ -1,6 +1,9 @@
 package com.example.swiftwave.ui.components
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,12 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
@@ -33,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -267,7 +273,7 @@ fun ImageDialog(
             Column (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = if(firebaseViewModel.imageViewText.isNotBlank()) 10.dp else 30.dp),
+                    .padding(bottom = if (firebaseViewModel.imageViewText.isNotBlank()) 10.dp else 30.dp),
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
@@ -296,7 +302,9 @@ fun ImageDialog(
                             text = firebaseViewModel.imageViewText,
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(15.dp).weight(1f),
+                            modifier = Modifier
+                                .padding(15.dp)
+                                .weight(1f),
                             maxLines = 2,
                             textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis
@@ -390,6 +398,120 @@ fun SetProfilePictureAndStatusDialog(
                         Text(
                             text = "Set",
                             fontSize = 20.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun EmojiDialog(
+    taskViewModel: TaskViewModel,
+    firebaseViewModel: FirebaseViewModel
+){
+    Dialog(onDismissRequest = {
+        taskViewModel.allEmojis = false
+        firebaseViewModel.selectedMessage = null
+        taskViewModel.chatOptions = false
+    }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(5.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if(firebaseViewModel.userData?.userPref?.recentEmojis?.isNotEmpty() == true) {
+                    Column {
+                        Text(
+                            text = "Recently Used",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ){
+                            firebaseViewModel.userData?.userPref?.recentEmojis?.take(6)?.forEach {
+                                Text(
+                                    text = it,
+                                    fontSize = 25.sp,
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .clickable {
+                                            if (firebaseViewModel.selectedMessage?.curUserReaction == it) {
+                                                firebaseViewModel.editMessage(
+                                                    firebaseViewModel.chattingWith?.userId.toString(),
+                                                    firebaseViewModel.selectedMessage?.time!!,
+                                                    firebaseViewModel.selectedMessage?.message.toString(),
+                                                    null
+                                                )
+                                            } else {
+                                                firebaseViewModel.editMessage(
+                                                    firebaseViewModel.chattingWith?.userId.toString(),
+                                                    firebaseViewModel.selectedMessage?.time!!,
+                                                    firebaseViewModel.selectedMessage?.message.toString(),
+                                                    it
+                                                )
+                                            }
+                                            firebaseViewModel.selectedMessage = null
+                                            taskViewModel.chatOptions = false
+                                            taskViewModel.allEmojis = false
+                                        }
+                                )
+                            }
+                        }
+                    }
+                }
+                Text(
+                    text = "All Emojis",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Left
+                )
+                Spacer(modifier = Modifier.size(5.dp))
+                LazyVerticalGrid(columns = GridCells.Fixed(6)) {
+                    items(allEmojis){
+                        Text(
+                            text = it,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .combinedClickable(
+                                    onClick = {
+                                        if (firebaseViewModel.selectedMessage?.curUserReaction == it) {
+                                            firebaseViewModel.editMessage(
+                                                firebaseViewModel.chattingWith?.userId.toString(),
+                                                firebaseViewModel.selectedMessage?.time!!,
+                                                firebaseViewModel.selectedMessage?.message.toString(),
+                                                null
+                                            )
+                                        } else {
+                                            firebaseViewModel.updateEmojiPref(it)
+                                            firebaseViewModel.editMessage(
+                                                firebaseViewModel.chattingWith?.userId.toString(),
+                                                firebaseViewModel.selectedMessage?.time!!,
+                                                firebaseViewModel.selectedMessage?.message.toString(),
+                                                it
+                                            )
+                                        }
+                                        firebaseViewModel.selectedMessage = null
+                                        taskViewModel.chatOptions = false
+                                        taskViewModel.allEmojis = false
+                                    }
+                                ),
+                            fontSize = 25.sp
                         )
                     }
                 }

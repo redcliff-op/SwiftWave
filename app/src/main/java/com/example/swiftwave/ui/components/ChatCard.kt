@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,7 +63,7 @@ fun chatCard(
                     containerColor = Color.Transparent
                 )
             ) {
-                val emojiList = mutableListOf("\uD83D\uDC4D","\uD83D\uDC4E","❤\uFE0F","\uD83D\uDE2E","\uD83D\uDE2D","\uD83D\uDE4F")
+                val emojiList = mutableListOf("\uD83D\uDC4D","\uD83D\uDC4E","❤\uFE0F","\uD83D\uDE2E","\uD83D\uDE2D","\uD83D\uDE02")
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -110,6 +113,23 @@ fun chatCard(
                             )
                         }
                         Spacer(modifier = Modifier.size(5.dp))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.secondary.copy(0.5f),
+                                shape = CircleShape
+                            ).clickable {
+                                taskViewModel.allEmojis = true
+                            }
+                    ){
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(26.dp)
+                        )
                     }
                 }
             }
@@ -389,6 +409,14 @@ fun chatCard(
                                             shape = RoundedCornerShape(20.dp)
                                         )
                                         .padding(3.dp)
+                                        .clickable {
+                                            firebaseViewModel.editMessage(
+                                                firebaseViewModel.chattingWith?.userId.toString(),
+                                                messageData.time!!,
+                                                messageData.message.toString(),
+                                                null
+                                            )
+                                        }
                                 ){
                                     Row (
                                         verticalAlignment = Alignment.CenterVertically
