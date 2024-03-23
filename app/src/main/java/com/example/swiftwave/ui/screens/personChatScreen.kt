@@ -484,7 +484,7 @@ fun personChatScreen(
                     Row (
                         modifier = Modifier.fillMaxWidth(0.9f),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.Start
                     ){
                         Image(
                             painter = rememberAsyncImagePainter(
