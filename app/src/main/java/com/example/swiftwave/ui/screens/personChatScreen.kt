@@ -1,7 +1,6 @@
 package com.example.swiftwave.ui.screens
 
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,6 +50,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
@@ -610,6 +610,46 @@ fun personChatScreen(
                         }
                     }
                 }
+                AnimatedVisibility(visible = firebaseViewModel.uploadingImage!=null) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ){
+                        Card(
+                            modifier = Modifier
+                                .padding(horizontal = 5.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ){
+                            Box(
+                              contentAlignment = Alignment.Center
+                            ){
+                                AsyncImage(
+                                    model = firebaseViewModel.uploadingImage,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(280.dp)
+                                        .padding(7.dp)
+                                        .blur(10.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Image(
+                                    painter = rememberAsyncImagePainter(
+                                        ImageRequest.Builder(ctx).data(data = R.drawable.uploading).apply(block = {
+                                            size(Size.ORIGINAL)
+                                        }).build(), imageLoader = imageLoader
+                                    ),
+                                    modifier = Modifier.size(150.dp),
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    }
+                }
                 if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == true){
                     Text(
                         text = "You cannot Message this Person Anymore",
@@ -691,13 +731,6 @@ fun personChatScreen(
                                             firebaseViewModel.text,
                                             repliedTo = firebaseViewModel.repliedTo
                                         )
-                                        if(firebaseViewModel.imageUri!=null){
-                                            Toast.makeText(
-                                                ctx,
-                                                "Image will be Uploaded and Sent",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
                                     }
                                     firebaseViewModel.text = ""
                                     firebaseViewModel.imageUri = null

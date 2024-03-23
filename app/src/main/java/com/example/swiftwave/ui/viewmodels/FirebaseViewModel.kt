@@ -49,6 +49,7 @@ class FirebaseViewModel: ViewModel() {
     var curUserStatus by mutableStateOf(false)
     var sentBy by mutableStateOf("")
     var imageDialogProfilePicture by mutableStateOf("")
+    var uploadingImage by mutableStateOf<Uri?>(null)
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -253,7 +254,7 @@ class FirebaseViewModel: ViewModel() {
                 .collection(userData?.userId.toString())
                 .add(messageData)
                 .await()
-
+            uploadingImage = null
 
             val latestMessageSenderRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + otherUserId)
             latestMessageSenderRef.set(messageData)
@@ -271,8 +272,9 @@ class FirebaseViewModel: ViewModel() {
 
 
     fun uploadImageAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch{
             if (imageUri != null) {
+                uploadingImage = imageUri
                 val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
                 val uploadTask = storageRef.putFile(imageUri!!)
                 uploadTask.addOnSuccessListener {
