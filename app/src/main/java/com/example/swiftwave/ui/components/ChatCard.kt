@@ -304,7 +304,8 @@ fun chatCard(
                             Modifier.width(280.dp)
                         }else{
                             Modifier
-                        }
+                        },
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ){
                         if(messageData.repliedTo!=null){
                             val user =
@@ -323,7 +324,11 @@ fun chatCard(
                                     ),
                                 shape = RoundedCornerShape(20.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
+                                    containerColor =
+                                        if(messageData.senderID==firebaseViewModel.userData?.userId)
+                                            MaterialTheme.colorScheme.surface
+                                        else
+                                            MaterialTheme.colorScheme.secondaryContainer
                                 )
                             ) {
                                 Column(
@@ -333,7 +338,11 @@ fun chatCard(
                                         Text(
                                             text = messageData.message.toString(),
                                             fontSize = 17.sp,
-                                            color = MaterialTheme.colorScheme.surface
+                                            color =
+                                                if(messageData.senderID==firebaseViewModel.userData?.userId)
+                                                    MaterialTheme.colorScheme.surface
+                                                else
+                                                    MaterialTheme.colorScheme.secondaryContainer
                                         )
                                         Text(
                                             text = user.toString(),
