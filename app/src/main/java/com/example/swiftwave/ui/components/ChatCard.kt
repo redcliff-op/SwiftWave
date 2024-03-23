@@ -336,13 +336,14 @@ fun chatCard(
                                 ) {
                                     Box {
                                         Text(
-                                            text = messageData.message.toString(),
+                                            text = messageData.message.toString() + "  ",
                                             fontSize = 17.sp,
                                             color =
                                                 if(messageData.senderID==firebaseViewModel.userData?.userId)
                                                     MaterialTheme.colorScheme.surface
                                                 else
-                                                    MaterialTheme.colorScheme.secondaryContainer
+                                                    MaterialTheme.colorScheme.secondaryContainer,
+                                            maxLines = 1
                                         )
                                         Text(
                                             text = user.toString(),
@@ -381,7 +382,7 @@ fun chatCard(
                                                 Text(
                                                     text = "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.Bold
+                                                    fontWeight = FontWeight.SemiBold
                                                 )
                                             }
                                             Text(
