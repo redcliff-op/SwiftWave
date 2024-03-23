@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -119,7 +121,8 @@ fun chatCard(
                             .background(
                                 color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                 shape = CircleShape
-                            ).clickable {
+                            )
+                            .clickable {
                                 taskViewModel.allEmojis = true
                             }
                     ){
@@ -148,16 +151,20 @@ fun chatCard(
                 )
                 .combinedClickable(
                     onLongClick = {
-                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false){
+                        if (firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false) {
                             firebaseViewModel.selectedMessage = messageData
                             taskViewModel.chatOptions = true
                         }
                     },
                     onClick = {
-                        if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false){
+                        if (firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false) {
                             taskViewModel.chatOptions = false
                             firebaseViewModel.selectedMessage = null
+                            firebaseViewModel.repliedTo = null
                         }
+                    },
+                    onDoubleClick = {
+                        firebaseViewModel.repliedTo = messageData
                     }
                 )
         ){
@@ -299,6 +306,86 @@ fun chatCard(
                             Modifier
                         }
                     ){
+                        if(messageData.repliedTo!=null){
+                            val user =
+                                if(messageData.repliedTo?.senderID==firebaseViewModel.userData?.userId)
+                                    "You"
+                                else{
+                                    firebaseViewModel.chattingWith?.username
+                                }
+                            Card(
+                                modifier = Modifier
+                                    .padding(
+                                        top = 10.dp,
+                                        bottom = 0.dp,
+                                        start = 6.dp,
+                                        end = 5.dp
+                                    ),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(10.dp),
+                                ) {
+                                    Box {
+                                        Text(
+                                            text = messageData.message.toString(),
+                                            fontSize = 17.sp,
+                                            color = MaterialTheme.colorScheme.surface
+                                        )
+                                        Text(
+                                            text = user.toString(),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Row (
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+                                        if(messageData.repliedTo?.image!=null){
+                                            SubcomposeAsyncImage(
+                                                model = messageData.repliedTo?.image,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .aspectRatio(1f)
+                                                    .clip(shape = RoundedCornerShape(4.dp)),
+                                                contentScale = ContentScale.Crop,
+                                                loading = {
+                                                    Row (
+                                                        modifier =  Modifier.fillMaxSize(),
+                                                        horizontalArrangement = Arrangement.Center,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ){
+                                                        CircularProgressIndicator()
+                                                    }
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.size(5.dp))
+                                        }
+                                        Column {
+                                            if(messageData.repliedTo?.image!=null && messageData.repliedTo?.message!=""){
+                                                Text(
+                                                    text = "Photo",
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Text(
+                                                text = messageData.repliedTo?.message.toString(),
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         if(messageData.image!=null){
                             SubcomposeAsyncImage(
                                 model = messageData.image,
@@ -312,7 +399,8 @@ fun chatCard(
                                     )
                                     .clickable {
                                         firebaseViewModel.imageString = messageData.image
-                                        firebaseViewModel.imageViewText = messageData.message.toString()
+                                        firebaseViewModel.imageViewText =
+                                            messageData.message.toString()
                                         firebaseViewModel.sentBy = messageData.senderID.toString()
                                         taskViewModel.showImageDialog =
                                             !taskViewModel.showImageDialog
@@ -341,7 +429,7 @@ fun chatCard(
                                 modifier = Modifier
                                     .padding(
                                         start = 15.dp,
-                                        top = 10.dp,
+                                        top = if(messageData.repliedTo!=null) 5.dp else 10.dp,
                                         end = 15.dp
                                     ),
                                 fontSize = 17.sp,

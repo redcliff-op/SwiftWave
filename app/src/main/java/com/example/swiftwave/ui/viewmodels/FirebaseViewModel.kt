@@ -32,7 +32,7 @@ import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import java.util.UUID
 
-class FirebaseViewModel() : ViewModel() {
+class FirebaseViewModel: ViewModel() {
 
     var userData: UserData? = null
     var chattingWith by mutableStateOf<UserData?>(null)
@@ -43,6 +43,7 @@ class FirebaseViewModel() : ViewModel() {
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
     var selectedMessage by mutableStateOf<MessageData?>(null)
+    var repliedTo by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
     var profilePicture by mutableStateOf("")
     var curUserStatus by mutableStateOf(false)
@@ -240,10 +241,10 @@ class FirebaseViewModel() : ViewModel() {
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null) {
+    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl)
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo)
             firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
@@ -269,7 +270,7 @@ class FirebaseViewModel() : ViewModel() {
     }
 
 
-    fun uploadImageAndSendMessage(otherUserId: String, message: String) {
+    fun uploadImageAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?) {
         viewModelScope.launch(Dispatchers.IO) {
             if (imageUri != null) {
                 val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
@@ -281,7 +282,7 @@ class FirebaseViewModel() : ViewModel() {
                     }
                 }
             } else {
-                sendMessage(otherUserId, message = message)
+                sendMessage(otherUserId, message = message, repliedTo = repliedTo)
             }
         }
     }

@@ -6,12 +6,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,16 +28,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -59,6 +67,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
@@ -73,6 +82,7 @@ import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun personChatScreen(
     firebaseViewModel: FirebaseViewModel,
@@ -104,6 +114,7 @@ fun personChatScreen(
             firebaseViewModel.text = ""
             firebaseViewModel.stopConversationsListener()
             firebaseViewModel.updateTypingStatus(false)
+            firebaseViewModel.repliedTo = null
         }
     }
 
@@ -366,18 +377,53 @@ fun personChatScreen(
                     reverseLayout = true
                 ) {
                     itemsIndexed(chatList.value.sortedBy { it.time }.reversed()) {index, message ->
-                        chatCard(
-                            message,
-                            chatList.value.size-1-index,
-                            firebaseViewModel,
-                            taskViewModel
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            initialValue = SwipeToDismissBoxValue.Settled,
+                            positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 10 },
+                            confirmValueChange = {
+                                if (it != SwipeToDismissBoxValue.Settled) {
+                                    firebaseViewModel.repliedTo = message
+                                    false
+                                } else {
+                                    false
+                                }
+                            }
+                        )
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                AnimatedVisibility(visible = dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
+                                    Row (
+                                        modifier = Modifier.fillMaxHeight(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ){
+                                        Spacer(modifier = Modifier.size(10.dp))
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.reply),
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(50.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            content = {
+                                chatCard(
+                                    message,
+                                    chatList.value.size-1-index,
+                                    firebaseViewModel,
+                                    taskViewModel
+                                )
+                            },
+                            enableDismissFromEndToStart = false
                         )
                     }
                 }
                 AnimatedVisibility(visible =userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.typing == firebaseViewModel.userData?.userId) {
                     Row (
                         modifier = Modifier.fillMaxWidth(0.9f),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ){
                         Image(
                             painter = rememberAsyncImagePainter(
@@ -448,6 +494,105 @@ fun personChatScreen(
                             )
                         }
                         Spacer(modifier = Modifier.size(10.dp))
+                    }
+                }
+                AnimatedVisibility(visible = firebaseViewModel.repliedTo!=null) {
+                    val user =
+                        if(firebaseViewModel.repliedTo?.senderID == firebaseViewModel.userData?.userId)
+                            "Yourself"
+                        else{
+                            firebaseViewModel.chattingWith?.username
+                        }
+                    ElevatedCard {
+                        Column(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth(0.9f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Row (
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ){
+                                Row (
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ){
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.reply),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                    Text(
+                                        text = "Replying to $user",
+                                        textAlign = TextAlign.Start,
+                                        overflow = TextOverflow.Ellipsis,
+                                        maxLines = 1,
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {firebaseViewModel.repliedTo=null},
+                                    modifier = Modifier.size(30.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Clear,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 5.dp)
+                                    .animateContentSize()
+                            ) {
+                                Row (
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ){
+                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.image!=null){
+                                        SubcomposeAsyncImage(
+                                            model = firebaseViewModel.repliedTo?.image,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .padding(10.dp)
+                                                .aspectRatio(1f)
+                                                .clip(shape = RoundedCornerShape(10.dp)),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    }
+                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.message != "") {
+                                        Column(
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            AnimatedVisibility(visible = firebaseViewModel.repliedTo?.image!=null) {
+                                                Text(
+                                                    text = "Photo",
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Text(
+                                                text = if(firebaseViewModel.repliedTo?.message.isNullOrEmpty()) "" else firebaseViewModel.repliedTo?.message.toString(),
+                                                modifier = Modifier.padding(
+                                                    start = if(firebaseViewModel.repliedTo?.image!=null) 0.dp else 10.dp,
+                                                    end = 10.dp,
+                                                    bottom = 10.dp,
+                                                    top = if(firebaseViewModel.repliedTo?.image!=null) 0.dp else 10.dp
+                                                ),
+                                                color = Color.White,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 if(firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == true){
@@ -528,7 +673,8 @@ fun personChatScreen(
                                     }else{
                                         firebaseViewModel.uploadImageAndSendMessage(
                                             firebaseViewModel.chattingWith?.userId.toString(),
-                                            firebaseViewModel.text
+                                            firebaseViewModel.text,
+                                            repliedTo = firebaseViewModel.repliedTo
                                         )
                                         if(firebaseViewModel.imageUri!=null){
                                             Toast.makeText(
@@ -543,6 +689,7 @@ fun personChatScreen(
                                     taskViewModel.isEditing = false
                                     taskViewModel.chatOptions = false
                                     firebaseViewModel.selectedMessage = null
+                                    firebaseViewModel.repliedTo = null
                                 }
                             ){
                                 Icon(
