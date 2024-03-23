@@ -67,6 +67,8 @@ class FirebaseViewModel: ViewModel() {
     private var conversationsListener: ListenerRegistration? = null
     val _viewedStatus = MutableStateFlow<MutableList<String?>>(emptyList<String>().toMutableList())
     val viewedStatus : StateFlow<MutableList<String?>> get() = _viewedStatus.asStateFlow()
+    private val _repliedToIndex = MutableStateFlow<Int?>(null)
+    val repliedToIndex : StateFlow<Int?> = _repliedToIndex
 
     fun loadChatListUsers() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -700,6 +702,13 @@ class FirebaseViewModel: ViewModel() {
                 val userDocumentRef = firebase.collection("users").document(user.userId.toString())
                 userDocumentRef.update("userPref", user.userPref).await()
             }
+        }
+    }
+    fun findRepliedToIndex(time: Long){
+        viewModelScope.launch (Dispatchers.Default){
+            _repliedToIndex.value = chatMessages.value.indexOfFirst { it.time == time }
+            delay(1000)
+            _repliedToIndex.value = null
         }
     }
 }

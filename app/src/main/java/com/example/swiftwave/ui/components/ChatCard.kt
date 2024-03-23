@@ -143,7 +143,7 @@ fun chatCard(
                 .padding(vertical = 2.dp)
                 .background(
                     color =
-                    if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString()) {
+                    if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString() || firebaseViewModel.repliedToIndex.collectAsState().value == index) {
                         MaterialTheme.colorScheme.secondary.copy(0.5f)
                     } else {
                         Color.Transparent
@@ -321,7 +321,12 @@ fun chatCard(
                                         bottom = 0.dp,
                                         start = 6.dp,
                                         end = 5.dp
-                                    ),
+                                    )
+                                    .clickable {
+                                        messageData.repliedTo?.time?.let {
+                                            firebaseViewModel.findRepliedToIndex(it)
+                                        }
+                                    },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor =

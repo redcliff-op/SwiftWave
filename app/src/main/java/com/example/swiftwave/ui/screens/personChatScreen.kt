@@ -372,11 +372,17 @@ fun personChatScreen(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 val listState = rememberLazyListState()
+                val index = firebaseViewModel.repliedToIndex.collectAsState()
                 LaunchedEffect(Unit) {
-                    listState.scrollToItem(0)
+                    listState.animateScrollToItem(0)
                 }
                 LaunchedEffect(chatList.value.size) {
-                    listState.scrollToItem(0)
+                    listState.animateScrollToItem(0)
+                }
+                LaunchedEffect(index.value) {
+                    if(index.value!=null){
+                        listState.animateScrollToItem(chatList.value.size-1- index.value!!)
+                    }
                 }
                 LazyColumn(
                     modifier = Modifier
