@@ -44,6 +44,7 @@ class FirebaseViewModel: ViewModel() {
     var Bio by mutableStateOf("")
     var selectedMessage by mutableStateOf<MessageData?>(null)
     var repliedTo by mutableStateOf<MessageData?>(null)
+    var forwarded by mutableStateOf<MessageData?>(null)
     var searchContact by mutableStateOf("")
     var profilePicture by mutableStateOf("")
     var curUserStatus by mutableStateOf(false)
@@ -244,10 +245,10 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null) {
+    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo)
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded)
             firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
@@ -275,7 +276,14 @@ class FirebaseViewModel: ViewModel() {
 
     fun uploadImageAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?) {
         viewModelScope.launch{
-            if (imageUri != null) {
+            if(forwarded!=null){
+                if(forwarded?.image!=null){
+                    sendMessage(otherUserId, imageUrl = forwarded?.image, message = message, forwarded = forwarded?.isForwarded)
+                }else{
+                    sendMessage(otherUserId, message = message, repliedTo = repliedTo, forwarded = forwarded?.isForwarded)
+                }
+                forwarded = null
+            }else if (imageUri != null) {
                 uploadingImage = imageUri
                 val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
                 val uploadTask = storageRef.putFile(imageUri!!)

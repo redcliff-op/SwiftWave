@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     Scaffold (
                         bottomBar = {
-                            AnimatedVisibility(visible = taskViewModel.showNavBar) {
+                            AnimatedVisibility(visible = taskViewModel.showNavBar && !taskViewModel.isForwarding) {
                                 NavigationBar (
                                     containerColor = Color.Transparent
                                 ){
@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
                         floatingActionButton = {
                             val currentScreen by navController.currentBackStackEntryAsState()
                             AnimatedVisibility(
-                                visible = taskViewModel.showNavBar && (currentScreen?.destination?.route.equals("Chats")),
+                                visible = taskViewModel.showNavBar && !taskViewModel.isForwarding && (currentScreen?.destination?.route.equals("Chats")),
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut() + slideOutVertically()
                             ){

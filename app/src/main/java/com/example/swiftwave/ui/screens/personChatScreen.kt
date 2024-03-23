@@ -6,6 +6,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -402,10 +404,16 @@ fun personChatScreen(
                             initialValue = SwipeToDismissBoxValue.Settled,
                             positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 10 },
                             confirmValueChange = {
-                                if (it != SwipeToDismissBoxValue.Settled) {
+                                if (it == SwipeToDismissBoxValue.StartToEnd) {
                                     firebaseViewModel.repliedTo = message
                                     false
-                                } else {
+                                } else if(it == SwipeToDismissBoxValue.EndToStart){
+                                    taskViewModel.isForwarding = true
+                                    firebaseViewModel.forwarded = message
+                                    firebaseViewModel.forwarded?.isForwarded = true
+                                    navController.navigate("Chats")
+                                    false
+                                }else{
                                     false
                                 }
                             }
@@ -413,7 +421,7 @@ fun personChatScreen(
                         SwipeToDismissBox(
                             state = dismissState,
                             backgroundContent = {
-                                AnimatedVisibility(visible = dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
+                                AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
                                     Row (
                                         modifier = Modifier.fillMaxHeight(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -425,6 +433,39 @@ fun personChatScreen(
                                             tint = Color.White,
                                             modifier = Modifier.size(50.dp)
                                         )
+                                        Spacer(modifier = Modifier.size(10.dp))
+                                        Text(
+                                            text = "Reply",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                AnimatedVisibility(
+                                    visible = dismissState.targetValue == SwipeToDismissBoxValue.EndToStart,
+                                    enter = slideInHorizontally (
+                                        initialOffsetX = { fullWidth -> fullWidth }
+                                    ),
+                                    exit = slideOutHorizontally(
+                                        targetOffsetX = { fullWidth -> fullWidth }
+                                    )
+                                ) {
+                                    Row (
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.End
+                                    ){
+                                        Text(
+                                            text = "Forward",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.size(10.dp))
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.forward),
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(50.dp)
+                                        )
+                                        Spacer(modifier = Modifier.size(20.dp))
                                     }
                                 }
                             },
@@ -436,7 +477,6 @@ fun personChatScreen(
                                     taskViewModel
                                 )
                             },
-                            enableDismissFromEndToStart = false
                         )
                     }
                 }

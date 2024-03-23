@@ -472,6 +472,13 @@ fun chatCard(
                                 modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                                 fontSize = 12.sp,
                             )
+                            if(messageData.isForwarded==true){
+                                Text(
+                                    text = "Forwarded",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
+                            }
                             if(!(messageData.otherUserReaction.isNullOrBlank())) {
                                 Box(
                                     modifier = Modifier

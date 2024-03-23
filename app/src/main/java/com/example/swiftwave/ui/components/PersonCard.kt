@@ -51,6 +51,14 @@ fun PersonCard(
             firebaseViewModel.chattingWith = userData
             firebaseViewModel.startMessageListener()
             navController.navigate("PersonChat")
+            if(taskViewModel.isForwarding){
+                firebaseViewModel.uploadImageAndSendMessage(
+                    firebaseViewModel.chattingWith?.userId.toString(),
+                    firebaseViewModel.forwarded?.message.toString(),
+                    null
+                )
+                taskViewModel.isForwarding = false
+            }
         }
     ) {
         Row (

@@ -7,5 +7,6 @@ data class MessageData(
     val image : String? = null,
     var curUserReaction : String? = "",
     var otherUserReaction : String? = "",
-    var repliedTo: MessageData? = null
+    var repliedTo: MessageData? = null,
+    var isForwarded: Boolean? = false
 )
