@@ -445,9 +445,11 @@ class FirebaseViewModel: ViewModel() {
                     .set(it)
             }
 
-            messageData.image?.let { imageUrl ->
-                val storageRef = Firebase.storage.getReferenceFromUrl(imageUrl)
-                storageRef.delete()
+            if(messageData.isForwarded == false){
+                messageData.image?.let { imageUrl ->
+                    val storageRef = Firebase.storage.getReferenceFromUrl(imageUrl)
+                    storageRef.delete()
+                }
             }
         }
     }
