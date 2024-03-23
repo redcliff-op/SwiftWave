@@ -1,5 +1,8 @@
 package com.example.swiftwave.ui.components
 
+import com.example.swiftwave.R
+import com.example.swiftwave.data.model.bottomNavBarItem
+
 val allEmojis = listOf(
     "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "☺️", "😊",
     "😇", "🙂", "🙃", "😉", "😋", "😎", "😍", "🥰", "😘", "😚",
@@ -45,3 +48,10 @@ val allEmojis = listOf(
     "🧊", "🥤", "🧋", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂",
     "🍮", "🍭",
 )
+
+val bottomNavBarList = listOf(
+        bottomNavBarItem("Chats", R.drawable.chaticon),
+        bottomNavBarItem("Favorites", R.drawable.favoritesicon),
+        bottomNavBarItem("Status", R.drawable.statusicon),
+        bottomNavBarItem("Account", R.drawable.accounticon),
+    )

@@ -42,6 +42,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.swiftwave.auth.GoogleAuthUiClient
+import com.example.swiftwave.ui.components.bottomNavBarList
 import com.example.swiftwave.ui.screens.accountScreen
 import com.example.swiftwave.ui.screens.blockedScreen
 import com.example.swiftwave.ui.screens.chatScreen
@@ -83,7 +84,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     val navController = rememberNavController()
-                    val bottomBarList = taskViewModel.initialiseBottomNavBar()
                     Scaffold (
                         bottomBar = {
                             AnimatedVisibility(visible = taskViewModel.showNavBar) {
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                     containerColor = Color.Transparent
                                 ){
                                     if(taskViewModel.isSignedIn){
-                                        bottomBarList.forEachIndexed { index, item ->
+                                        bottomNavBarList.forEachIndexed { index, item ->
                                             NavigationBarItem(
                                                 selected = index == taskViewModel.selected,
                                                 onClick = {

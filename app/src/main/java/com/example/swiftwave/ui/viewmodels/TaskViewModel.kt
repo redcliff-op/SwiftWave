@@ -9,8 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.swiftwave.R
-import com.example.swiftwave.data.model.bottomNavBarItem
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -31,14 +29,6 @@ class TaskViewModel : ViewModel(){
     var isUploadingStatus by mutableStateOf(false)
     var showDeleteStatusOption by mutableStateOf(false)
     var allEmojis by mutableStateOf(false)
-    fun initialiseBottomNavBar(): List<bottomNavBarItem> {
-        return listOf(
-            bottomNavBarItem("Chats", R.drawable.chaticon),
-            bottomNavBarItem("Favorites",R.drawable.favoritesicon),
-            bottomNavBarItem("Status",R.drawable.statusicon),
-            bottomNavBarItem("Account",R.drawable.accounticon),
-        )
-    }
 
     fun getTime(mills: Long): String {
         val calendar = Calendar.getInstance()
