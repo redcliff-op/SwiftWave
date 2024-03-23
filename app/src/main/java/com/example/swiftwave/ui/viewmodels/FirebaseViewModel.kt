@@ -714,9 +714,12 @@ class FirebaseViewModel: ViewModel() {
     }
     fun findRepliedToIndex(time: Long){
         viewModelScope.launch (Dispatchers.Default){
-            _repliedToIndex.value = chatMessages.value.indexOfFirst { it.time == time }
-            delay(1000)
-            _repliedToIndex.value = null
+            val ind = chatMessages.value.indexOfFirst { it.time == time }
+            if(ind!=-1){
+                _repliedToIndex.value = ind
+                delay(1000)
+                _repliedToIndex.value = null
+            }
         }
     }
 }
