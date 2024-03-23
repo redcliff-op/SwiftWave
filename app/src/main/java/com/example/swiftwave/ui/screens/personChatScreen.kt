@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -369,14 +371,27 @@ fun personChatScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+                val listState = rememberLazyListState()
+                LaunchedEffect(Unit) {
+                    listState.scrollToItem(0)
+                }
+                LaunchedEffect(chatList.value.size) {
+                    listState.scrollToItem(0)
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .height(50.dp)
                         .weight(1f),
-                    reverseLayout = true
+                    reverseLayout = true,
+                    state = listState
                 ) {
-                    itemsIndexed(chatList.value.sortedBy { it.time }.reversed()) {index, message ->
+                    itemsIndexed(
+                        items = chatList.value.sortedBy { it.time }.reversed(),
+                        key = { index, item ->
+                            "${item.time}"
+                        }
+                    ) {index, message ->
                         val dismissState = rememberSwipeToDismissBoxState(
                             initialValue = SwipeToDismissBoxValue.Settled,
                             positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 10 },
