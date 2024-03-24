@@ -441,7 +441,7 @@ fun personChatScreen(
                                     taskViewModel.isForwarding = true
                                     firebaseViewModel.forwarded = message
                                     firebaseViewModel.forwarded?.isForwarded = true
-                                    navController.navigate("Chats")
+                                    navController.navigate("ForwardScreen")
                                     false
                                 }else{
                                     false

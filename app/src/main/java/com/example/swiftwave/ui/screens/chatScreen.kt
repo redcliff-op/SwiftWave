@@ -75,13 +75,7 @@ fun chatScreen(
     val blockedUsers = firebaseViewModel.blockedUsers.collectAsState()
     val filteredUsers = firebaseViewModel.searchContacts.collectAsState()
     val statusList = firebaseViewModel.usersWithStatus.collectAsState()
-    BackHandler {
-        if (taskViewModel.isForwarding || firebaseViewModel.forwarded!=null) {
-            taskViewModel.isForwarding = false
-            firebaseViewModel.forwarded = null
-            navController.navigate("PersonChat")
-        }
-    }
+    BackHandler {}
     if(taskViewModel.showDialog){
         CustomDialog(
             taskViewModel = taskViewModel,
@@ -109,47 +103,45 @@ fun chatScreen(
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
-                text = if(taskViewModel.isForwarding) "Forward to ?" else "Chats",
+                text = "Chats",
                 fontSize = 35.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
         }
-        if(!taskViewModel.isForwarding){
-            Spacer(modifier = Modifier.size(5.dp))
-            OutlinedTextField(
-                value = firebaseViewModel.searchContact,
-                onValueChange = {
-                        newValue -> firebaseViewModel.searchContact = newValue
-                    firebaseViewModel.filterContacts(firebaseViewModel.chatListUsers.value,firebaseViewModel.searchContact)
-                },
-                label = { Text("Search") },
-                placeholder = { Text(text = "Search By Name or Email")},
-                leadingIcon = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Spacer(modifier = Modifier.size(30.dp))
-                        Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
-                        Spacer(modifier = Modifier.size(10.dp))
-                    }
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(30.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
-                )
+        Spacer(modifier = Modifier.size(5.dp))
+        OutlinedTextField(
+            value = firebaseViewModel.searchContact,
+            onValueChange = {
+                    newValue -> firebaseViewModel.searchContact = newValue
+                firebaseViewModel.filterContacts(firebaseViewModel.chatListUsers.value,firebaseViewModel.searchContact)
+            },
+            label = { Text("Search") },
+            placeholder = { Text(text = "Search By Name or Email")},
+            leadingIcon = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.size(30.dp))
+                    Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Search,
+            ),
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(30.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
+                unfocusedBorderColor = Color.Transparent,
+                focusedContainerColor = MaterialTheme.colorScheme.primary.copy(0.2f),
             )
-        }
-        AnimatedVisibility(visible = statusList.value.isNotEmpty() && !(taskViewModel.isForwarding)) {
+        )
+        AnimatedVisibility(visible = statusList.value.isNotEmpty()) {
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth(0.9f),
@@ -167,18 +159,16 @@ fun chatScreen(
             }
         }
         Spacer(modifier = Modifier.size(20.dp))
-        if(!taskViewModel.isForwarding){
-            Row (
-                modifier = Modifier.fillMaxWidth(0.9f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(
-                    text = "Message",
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+        Row (
+            modifier = Modifier.fillMaxWidth(0.9f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(
+                text = "Message",
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
         LazyColumn(
             modifier = Modifier
@@ -186,12 +176,9 @@ fun chatScreen(
                 .padding(bottom = 70.dp)
         ){
             items(
-                items = if(filteredUsers.value.isEmpty()){
-                    if(taskViewModel.isForwarding)
-                        chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }.filter { it.userId!=firebaseViewModel.chattingWith?.userId }
-                    else{
-                        chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }
-                    }
+                items =
+                if(filteredUsers.value.isEmpty()){
+                    chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }
                 }else{
                     filteredUsers.value
                 },

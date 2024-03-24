@@ -49,6 +49,7 @@ import com.example.swiftwave.ui.screens.chatScreen
 import com.example.swiftwave.ui.screens.chatSettings
 import com.example.swiftwave.ui.screens.editBioScreen
 import com.example.swiftwave.ui.screens.favoritesScreen
+import com.example.swiftwave.ui.screens.forwardScreen
 import com.example.swiftwave.ui.screens.loginScreen
 import com.example.swiftwave.ui.screens.personChatScreen
 import com.example.swiftwave.ui.screens.statusScreen
@@ -122,7 +123,7 @@ class MainActivity : ComponentActivity() {
                         floatingActionButton = {
                             val currentScreen by navController.currentBackStackEntryAsState()
                             AnimatedVisibility(
-                                visible = taskViewModel.showNavBar && !taskViewModel.isForwarding && (currentScreen?.destination?.route.equals("Chats")),
+                                visible = taskViewModel.showNavBar && (currentScreen?.destination?.route.equals("Chats")),
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut() + slideOutVertically()
                             ){
@@ -277,6 +278,13 @@ class MainActivity : ComponentActivity() {
                                 chatSettings(
                                     firebaseViewModel = firebaseViewModel,
                                     taskViewModel = taskViewModel
+                                )
+                            }
+                            composable(route = "ForwardScreen"){
+                                forwardScreen(
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel,
+                                    navController = navController
                                 )
                             }
                         }
