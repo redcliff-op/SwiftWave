@@ -23,5 +23,5 @@ data class UserData(
     var statusExpiry: Long? = 0,
     var online: Boolean? = false,
     var typing: String? = "",
-    var userPref: UserPref? = null
+    var userPref: UserPref? = UserPref()
 )

@@ -160,6 +160,7 @@ class MainActivity : ComponentActivity() {
                                                 Toast.LENGTH_LONG
                                             ).show()
                                             taskViewModel.isSignedIn = false
+                                            firebaseViewModel.removeToken()
                                             navController.navigate("Login")
                                         }
                                     },
@@ -297,6 +298,10 @@ class MainActivity : ComponentActivity() {
     }
     override fun onDestroy() {
         super.onDestroy()
+        firebaseViewModel.listeners.forEach { listener ->
+            listener.remove()
+        }
+        firebaseViewModel.listeners.clear()
         firebaseViewModel.updateTypingStatus(false)
         firebaseViewModel.updateOnlineStatus(false)
     }
