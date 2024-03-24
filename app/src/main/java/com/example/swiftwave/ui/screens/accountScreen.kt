@@ -209,5 +209,40 @@ fun accountScreen(
                 )
             }
         }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent
+            ),
+            onClick = {
+                navController.navigate("ChatSettings")
+            }
+        ) {
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Column {
+                    Text(
+                        text = "Chat Settings",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Manage Chat Customisations",
+                        fontSize = 15.sp,
+                        color = Color.Gray
+                    )
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.chaticon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
     }
 }

@@ -33,9 +33,9 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -275,9 +275,9 @@ fun personChatScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ){
-                    Divider(
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.fillMaxWidth(0.9f)
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 Row (
@@ -364,7 +364,8 @@ fun personChatScreen(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(0.5f), blendMode = BlendMode.Overlay)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary.copy(firebaseViewModel.userData?.userPref?.doodleTint!!), blendMode = BlendMode.Overlay),
+                alpha = firebaseViewModel.userData?.userPref?.doodleBackground!!
             )
             Column(
                 modifier = Modifier

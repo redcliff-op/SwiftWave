@@ -51,6 +51,7 @@ class FirebaseViewModel: ViewModel() {
     var sentBy by mutableStateOf("")
     var imageDialogProfilePicture by mutableStateOf("")
     var uploadingImage by mutableStateOf<Uri?>(null)
+    var swapChatColors by mutableStateOf(false)
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -187,6 +188,7 @@ class FirebaseViewModel: ViewModel() {
                 }
                 userData?.blocked = currentUser?.blocked
                 userData?.userPref = currentUser?.userPref
+                swapChatColors = currentUser?.userPref?.swapChatColors == true
             }
         }
     }
@@ -722,6 +724,13 @@ class FirebaseViewModel: ViewModel() {
                 delay(1000)
                 _repliedToIndex.value = null
             }
+        }
+    }
+
+    fun updateChatPreferences(){
+        viewModelScope.launch (Dispatchers.IO) {
+            val userDocumentRef = firebase.collection("users").document(userData?.userId.toString())
+            userDocumentRef.update("userPref", userData?.userPref).await()
         }
     }
 }

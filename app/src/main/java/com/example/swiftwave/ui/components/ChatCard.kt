@@ -53,6 +53,9 @@ fun chatCard(
     taskViewModel: TaskViewModel
 ){
     val chatList by firebaseViewModel.chatMessages.collectAsState()
+    val fontSize = firebaseViewModel.userData?.userPref?.fontSize!!
+    val roundedCornerRadius = firebaseViewModel.userData?.userPref?.roundedCornerRadius!!
+    val swapColors = firebaseViewModel.userData?.userPref?.swapChatColors!!
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -206,13 +209,13 @@ fun chatCard(
                                     if(chatList[index+1].senderID==firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                    30.dp
+                                    roundedCornerRadius.dp
                                 }
                             }else{
-                                30.dp
+                                roundedCornerRadius.dp
                             },
                             bottomStart =
                             if(messageData.senderID!=firebaseViewModel.userData?.userId){
@@ -220,13 +223,13 @@ fun chatCard(
                                     if(chatList[index+1].senderID!=firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                    30.dp
+                                    roundedCornerRadius.dp
                                 }
                             }else{
-                                30.dp
+                                roundedCornerRadius.dp
                             }
                         )
                     }else{
@@ -237,13 +240,13 @@ fun chatCard(
                                         if(chatList[index-1].senderID!=firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
-                                            30.dp
+                                            roundedCornerRadius.dp
                                         }
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                     30.dp
+                                     roundedCornerRadius.dp
                                 },
                             topEnd =
                                 if(messageData.senderID==firebaseViewModel.userData?.userId){
@@ -251,13 +254,13 @@ fun chatCard(
                                         if(chatList[index-1].senderID==firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
-                                            30.dp
+                                            roundedCornerRadius.dp
                                         }
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                    30.dp
+                                    roundedCornerRadius.dp
                                 },
                             bottomStart =
                             if(messageData.senderID!=firebaseViewModel.userData?.userId){
@@ -265,13 +268,13 @@ fun chatCard(
                                     if(chatList[index+1].senderID!=firebaseViewModel.userData?.userId){
                                         5.dp
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                    30.dp
+                                    roundedCornerRadius.dp
                                 }
                             }else{
-                                30.dp
+                                roundedCornerRadius.dp
                             },
                             bottomEnd =
                                 if(messageData.senderID==firebaseViewModel.userData?.userId){
@@ -279,22 +282,30 @@ fun chatCard(
                                         if(chatList[index+1].senderID==firebaseViewModel.userData?.userId){
                                             5.dp
                                         }else{
-                                            30.dp
+                                            roundedCornerRadius.dp
                                         }
                                     }else{
-                                        30.dp
+                                        roundedCornerRadius.dp
                                     }
                                 }else{
-                                    30.dp
+                                    roundedCornerRadius.dp
                                 }
                         )
                     },
                     colors = CardDefaults.cardColors(
                         containerColor =
                         if(messageData.senderID==firebaseViewModel.userData?.userId){
-                            MaterialTheme.colorScheme.primaryContainer
+                            if(!swapColors){
+                                MaterialTheme.colorScheme.primaryContainer
+                            }else{
+                                MaterialTheme.colorScheme.surface
+                            }
                         }else{
-                            MaterialTheme.colorScheme.surface
+                            if(swapColors){
+                                MaterialTheme.colorScheme.primaryContainer
+                            }else{
+                                MaterialTheme.colorScheme.surface
+                            }
                         }
                     )
                 ) {
@@ -327,13 +338,26 @@ fun chatCard(
                                             firebaseViewModel.findRepliedToIndex(it)
                                         }
                                     },
-                                shape = RoundedCornerShape(20.dp),
+                                shape =
+                                    if(roundedCornerRadius<=10){
+                                        RoundedCornerShape(10.dp)
+                                    }else{
+                                         RoundedCornerShape((roundedCornerRadius-10).dp)
+                                    },
                                 colors = CardDefaults.cardColors(
                                     containerColor =
-                                        if(messageData.senderID==firebaseViewModel.userData?.userId)
-                                            MaterialTheme.colorScheme.surface
-                                        else
-                                            MaterialTheme.colorScheme.secondaryContainer
+                                        if(messageData.senderID==firebaseViewModel.userData?.userId){
+                                            if(!swapColors)
+                                                MaterialTheme.colorScheme.surface
+                                            else
+                                                MaterialTheme.colorScheme.secondaryContainer
+                                        }
+                                        else{
+                                            if(swapColors)
+                                                MaterialTheme.colorScheme.surface
+                                            else
+                                                MaterialTheme.colorScheme.secondaryContainer
+                                        }
                                 )
                             ) {
                                 Column(
@@ -344,10 +368,21 @@ fun chatCard(
                                             text = messageData.message.toString() + "  ",
                                             fontSize = 17.sp,
                                             color =
-                                                if(messageData.senderID==firebaseViewModel.userData?.userId)
-                                                    MaterialTheme.colorScheme.surface
-                                                else
-                                                    MaterialTheme.colorScheme.secondaryContainer,
+                                                if(messageData.senderID==firebaseViewModel.userData?.userId){
+                                                    if(!swapColors){
+                                                        MaterialTheme.colorScheme.surface
+                                                    }else{
+                                                        MaterialTheme.colorScheme.secondaryContainer
+                                                    }
+                                                }
+                                                else {
+                                                    if (!swapColors) {
+                                                        MaterialTheme.colorScheme.secondaryContainer
+                                                    } else {
+                                                        MaterialTheme.colorScheme.surface
+
+                                                    }
+                                                },
                                             maxLines = 1
                                         )
                                         Text(
@@ -447,7 +482,7 @@ fun chatCard(
                                         top = if(messageData.repliedTo!=null) 5.dp else 10.dp,
                                         end = 15.dp
                                     ),
-                                fontSize = 17.sp,
+                                fontSize = fontSize.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
                             )

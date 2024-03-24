@@ -46,6 +46,7 @@ import com.example.swiftwave.ui.components.bottomNavBarList
 import com.example.swiftwave.ui.screens.accountScreen
 import com.example.swiftwave.ui.screens.blockedScreen
 import com.example.swiftwave.ui.screens.chatScreen
+import com.example.swiftwave.ui.screens.chatSettings
 import com.example.swiftwave.ui.screens.editBioScreen
 import com.example.swiftwave.ui.screens.favoritesScreen
 import com.example.swiftwave.ui.screens.loginScreen
@@ -269,6 +270,12 @@ class MainActivity : ComponentActivity() {
                             composable(route = "BlockedScreen"){
                                 blockedScreen(
                                     firebaseViewModel = firebaseViewModel
+                                )
+                            }
+                            composable(route = "ChatSettings"){
+                                chatSettings(
+                                    firebaseViewModel = firebaseViewModel,
+                                    taskViewModel = taskViewModel
                                 )
                             }
                         }
