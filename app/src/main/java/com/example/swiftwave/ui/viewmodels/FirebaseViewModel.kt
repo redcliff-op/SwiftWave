@@ -52,6 +52,7 @@ class FirebaseViewModel: ViewModel() {
     var imageDialogProfilePicture by mutableStateOf("")
     var uploadingImage by mutableStateOf<Uri?>(null)
     var swapChatColors by mutableStateOf(false)
+    var isLoadingChat = false
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -73,6 +74,10 @@ class FirebaseViewModel: ViewModel() {
     val repliedToIndex : StateFlow<Int?> = _repliedToIndex
 
     fun loadChatListUsers() {
+        if (isLoadingChat) {
+            return
+        }
+        isLoadingChat = true
         viewModelScope.launch(Dispatchers.IO) {
             val chatListUsers = mutableListOf<UserData>()
             val favorites = mutableListOf<UserData>()
@@ -124,6 +129,7 @@ class FirebaseViewModel: ViewModel() {
                 }
                 _favorites.value = favorites
             }
+            isLoadingChat = false
         }
     }
 
