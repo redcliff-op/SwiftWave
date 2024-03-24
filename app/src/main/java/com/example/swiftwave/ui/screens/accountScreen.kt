@@ -186,7 +186,7 @@ fun accountScreen(
             Row (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 20.dp),
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
@@ -221,7 +221,8 @@ fun accountScreen(
         ) {
             Row (
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ){

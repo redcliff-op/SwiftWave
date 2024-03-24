@@ -59,7 +59,7 @@ fun chatSettings(
         mutableIntStateOf(firebaseViewModel.userData?.userPref?.roundedCornerRadius!!)
     }
     var fontSizeSlider by remember {
-        mutableFloatStateOf((fontSize - 14) / (80 - 14).toFloat())
+        mutableFloatStateOf((fontSize - 14) / (20 - 14).toFloat())
     }
     var roundedCornerSlider by remember {
         mutableFloatStateOf((roundedCornerRadius - 10) / (30 - 10).toFloat())
@@ -111,7 +111,8 @@ fun chatSettings(
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.chatbg),
@@ -119,7 +120,7 @@ fun chatSettings(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(250.dp),
                         colorFilter = ColorFilter.tint(
                             MaterialTheme.colorScheme.onPrimary.copy(doodleTint),
                             blendMode = BlendMode.Overlay
@@ -179,7 +180,7 @@ fun chatSettings(
                     firebaseViewModel.userData?.userPref?.fontSize = fontSize
                 },
                 valueRange = 0f..1f,
-                steps = 100,
+                steps = 5,
                 modifier = Modifier.fillMaxWidth(0.93f)
             )
             Row (
@@ -202,7 +203,6 @@ fun chatSettings(
                     firebaseViewModel.userData?.userPref?.roundedCornerRadius = roundedCornerRadius
                 },
                 valueRange = 0f..1f,
-                steps = 100,
                 modifier = Modifier.fillMaxWidth(0.93f)
             )
             Row (
@@ -225,7 +225,6 @@ fun chatSettings(
                     firebaseViewModel.userData?.userPref?.doodleBackground = it
                 },
                 valueRange = 0.01f..1f,
-                steps = 100,
                 modifier = Modifier.fillMaxWidth(0.93f)
             )
             Row (
@@ -248,7 +247,6 @@ fun chatSettings(
                     firebaseViewModel.userData?.userPref?.doodleTint = it
                 },
                 valueRange = 0f..1f,
-                steps = 100,
                 modifier = Modifier.fillMaxWidth(0.93f)
             )
             Card(

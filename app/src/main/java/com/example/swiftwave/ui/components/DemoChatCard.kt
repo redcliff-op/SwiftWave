@@ -118,7 +118,7 @@ fun demoChatCard(
                                 fontSize = fontSize?.sp!!,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White,
-                                maxLines = 1,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
