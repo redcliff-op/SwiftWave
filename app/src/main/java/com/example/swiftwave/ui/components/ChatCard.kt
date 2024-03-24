@@ -34,12 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
@@ -501,10 +503,17 @@ fun chatCard(
                                 ),
                             verticalAlignment = Alignment.CenterVertically
                         ){
+                            if(messageData.starred == true){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.selectedstar),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
                             Text(
                                 text = taskViewModel.getTime(messageData.time?.toLong() ?: 0),
                                 color = Color.Gray,
-                                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                                modifier = Modifier.padding(start = 5.dp, end = 10.dp),
                                 fontSize = 12.sp,
                             )
                             if(messageData.isForwarded==true){

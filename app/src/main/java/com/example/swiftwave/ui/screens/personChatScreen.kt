@@ -30,7 +30,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -309,7 +311,34 @@ fun personChatScreen(
                                 .rotate(90f)
                         )
                     }
-                    Row{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        IconButton(onClick = {
+                            firebaseViewModel.selectedMessage?.starred = !firebaseViewModel.selectedMessage?.starred!!
+                            firebaseViewModel.editMessage(
+                                firebaseViewModel.chattingWith?.userId.toString(),
+                                firebaseViewModel.selectedMessage?.time!!,
+                                firebaseViewModel.selectedMessage?.message.toString(),
+                                firebaseViewModel.selectedMessage?.curUserReaction,
+                                firebaseViewModel.selectedMessage?.starred!!
+                            )
+                            firebaseViewModel.selectedMessage = null
+                            taskViewModel.chatOptions = false
+                        }) {
+                            Icon(
+                                painter = painterResource(
+                                    id =
+                                        if(firebaseViewModel.selectedMessage?.starred==true)
+                                            R.drawable.selectedstar
+                                        else
+                                            R.drawable.unselectedstar
+                                ),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(25.dp)
+                            )
+                        }
                         AnimatedVisibility(firebaseViewModel.selectedMessage?.senderID == firebaseViewModel.userData?.userId){
                             IconButton(
                                 onClick = {

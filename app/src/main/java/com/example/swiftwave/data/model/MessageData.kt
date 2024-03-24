@@ -8,5 +8,6 @@ data class MessageData(
     var curUserReaction : String? = "",
     var otherUserReaction : String? = "",
     var repliedTo: MessageData? = null,
-    var isForwarded: Boolean? = false
+    var isForwarded: Boolean? = false,
+    var starred: Boolean? = false
 )
