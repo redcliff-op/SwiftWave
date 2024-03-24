@@ -9,5 +9,6 @@ data class MessageData(
     var otherUserReaction : String? = "",
     var repliedTo: MessageData? = null,
     var isForwarded: Boolean? = false,
-    var starred: Boolean? = false
+    var starred: Boolean? = false,
+    var read: Boolean? = false
 )

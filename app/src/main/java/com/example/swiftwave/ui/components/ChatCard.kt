@@ -318,7 +318,11 @@ fun chatCard(
                         }else{
                             Modifier
                         },
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment =
+                        if(messageData.senderID==firebaseViewModel.userData?.userId)
+                            Alignment.End
+                        else
+                            Alignment.Start
                     ){
                         if(messageData.repliedTo!=null){
                             val user =
@@ -368,7 +372,7 @@ fun chatCard(
                                     Box {
                                         Text(
                                             text = messageData.message.toString() + "  ",
-                                            fontSize = 17.sp,
+                                            fontSize = fontSize.sp,
                                             color =
                                                 if(messageData.senderID==firebaseViewModel.userData?.userId){
                                                     if(!swapColors){
@@ -392,7 +396,8 @@ fun chatCard(
                                             color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Bold,
                                             maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
+                                            overflow = TextOverflow.Ellipsis,
+                                            fontSize = fontSize.sp
                                         )
                                     }
                                     Row (
@@ -424,7 +429,8 @@ fun chatCard(
                                                 Text(
                                                     text = "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.SemiBold
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = fontSize.sp
                                                 )
                                             }
                                             Text(
@@ -432,6 +438,7 @@ fun chatCard(
                                                 color = Color.White,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
+                                                fontSize = fontSize.sp
                                             )
                                         }
                                     }
@@ -513,7 +520,7 @@ fun chatCard(
                             Text(
                                 text = taskViewModel.getTime(messageData.time?.toLong() ?: 0),
                                 color = Color.Gray,
-                                modifier = Modifier.padding(start = 5.dp, end = 10.dp),
+                                modifier = Modifier.padding(start = 5.dp, end = 5.dp),
                                 fontSize = 12.sp,
                             )
                             if(messageData.isForwarded==true){
@@ -522,6 +529,7 @@ fun chatCard(
                                     fontSize = 12.sp,
                                     color = Color.Gray
                                 )
+                                Spacer(modifier = Modifier.size(5.dp))
                             }
                             if(!(messageData.otherUserReaction.isNullOrBlank())) {
                                 Box(
@@ -593,6 +601,21 @@ fun chatCard(
                                 }
                             }
                             Spacer(modifier = Modifier.size(5.dp))
+                            if(messageData.senderID==firebaseViewModel.userData?.userId){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.sentnotifiericon),
+                                    contentDescription = null,
+                                    tint =
+                                    if(messageData.read == true){
+                                        Color.White
+                                    }else{
+                                        Color.Gray
+                                    },
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.size(10.dp))
                         }
                     }
                 }

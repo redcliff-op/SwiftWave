@@ -19,6 +19,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Deferred
@@ -321,9 +322,33 @@ class FirebaseViewModel: ViewModel() {
                 .get()
                 .await()
             _chatMessages.value = messages.toObjects(MessageData::class.java)
+            updateReadStatus()
             isLoadingChat = false
         }
     }
+
+    fun updateReadStatus() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentUserRef = firebase.collection("conversations")
+                .document( chattingWith?.userId.toString())
+                .collection(userData?.userId.toString())
+
+            val messagesQuery = currentUserRef
+                .whereEqualTo("read", false)
+                .get()
+                .await()
+
+            for (document in messagesQuery.documents) {
+                val messageId = document.id
+                val message = document.toObject(MessageData::class.java)
+                message?.let {
+                    it.read = true
+                    currentUserRef.document(messageId).set(it, SetOptions.merge())
+                }
+            }
+        }
+    }
+
 
     fun startMessageListener() {
         viewModelScope.launch (Dispatchers.IO){
