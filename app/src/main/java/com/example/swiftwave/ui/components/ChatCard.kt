@@ -530,7 +530,7 @@ fun chatCard(
                                             color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                             shape = RoundedCornerShape(20.dp)
                                         )
-                                        .padding(3.dp)
+                                        .padding(1.dp)
                                 ){
                                     Row (
                                         verticalAlignment = Alignment.CenterVertically
@@ -540,13 +540,13 @@ fun chatCard(
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .clip(shape = CircleShape)
-                                                .size(30.dp)
+                                                .size(25.dp)
                                         )
                                         Text(
                                             text = if(!messageData.otherUserReaction.isNullOrBlank()) messageData.otherUserReaction.toString() else "",
                                             modifier = Modifier
                                                 .padding(
-                                                    horizontal = 10.dp,
+                                                    horizontal = 5.dp,
                                                     vertical = 3.dp
                                                 )
                                         )
@@ -554,7 +554,6 @@ fun chatCard(
                                 }
                                 Spacer(modifier = Modifier.size(5.dp))
                             }
-                            Spacer(modifier = Modifier.size(5.dp))
                             if(!(messageData.curUserReaction.isNullOrBlank())) {
                                 Box(
                                     modifier = Modifier
@@ -562,7 +561,7 @@ fun chatCard(
                                             color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                                             shape = RoundedCornerShape(20.dp)
                                         )
-                                        .padding(3.dp)
+                                        .padding(1.dp)
                                         .clickable {
                                             firebaseViewModel.editMessage(
                                                 firebaseViewModel.chattingWith?.userId.toString(),
@@ -580,15 +579,15 @@ fun chatCard(
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .clip(shape = CircleShape)
-                                                .size(30.dp)
+                                                .size(25.dp)
                                         )
                                         Text(
                                             text = if(!messageData.curUserReaction.isNullOrBlank()) messageData.curUserReaction.toString() else "",
                                             modifier = Modifier
                                                 .padding(
-                                                    horizontal = 10.dp,
+                                                    horizontal = 5.dp,
                                                     vertical = 3.dp
-                                                )
+                                                ),
                                         )
                                     }
                                 }
