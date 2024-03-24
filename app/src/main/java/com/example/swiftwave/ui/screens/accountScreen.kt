@@ -228,12 +228,12 @@ fun accountScreen(
             ){
                 Column {
                     Text(
-                        text = "Chat Settings",
+                        text = "Chat Customisations",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Manage Chat Customisations",
+                        text = "Personalize your Chat Experience!",
                         fontSize = 15.sp,
                         color = Color.Gray
                     )
