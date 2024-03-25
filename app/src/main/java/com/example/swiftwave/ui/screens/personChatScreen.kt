@@ -30,9 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -114,6 +112,7 @@ fun personChatScreen(
         .build()
     DisposableEffect(Unit){
         taskViewModel.showNavBar = false
+        taskViewModel.isStatus = false
         onDispose {
             taskViewModel.showNavBar = true
             taskViewModel.expandedPersonInfo = false
@@ -121,6 +120,7 @@ fun personChatScreen(
             firebaseViewModel.stopConversationsListener()
             firebaseViewModel.updateTypingStatus(false)
             firebaseViewModel.repliedTo = null
+            taskViewModel.isStatus = true
         }
     }
 
@@ -135,7 +135,8 @@ fun personChatScreen(
     if(taskViewModel.showImageDialog){
         ImageDialog(
             taskViewModel = taskViewModel,
-            firebaseViewModel = firebaseViewModel
+            firebaseViewModel = firebaseViewModel,
+            navController = navController
         )
     }
     if(taskViewModel.allEmojis){
@@ -389,7 +390,7 @@ fun personChatScreen(
                 .fillMaxSize()
         ){
             Image(
-                painter = painterResource(id = R.drawable.chatbg),
+                painter = painterResource(id = firebaseViewModel.userData?.userPref?.background!!),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
@@ -761,8 +762,8 @@ fun personChatScreen(
                                 .weight(1f),
                             maxLines = 4,
                             colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.8f),
-                                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
                                 unfocusedBorderColor = Color.Transparent,
                             ),
                             trailingIcon = {

@@ -85,7 +85,8 @@ fun chatScreen(
     if(taskViewModel.showImageDialog){
         ImageDialog(
             taskViewModel = taskViewModel,
-            firebaseViewModel = firebaseViewModel
+            firebaseViewModel = firebaseViewModel,
+            navController = navController
         )
     }
     val scope = rememberCoroutineScope()

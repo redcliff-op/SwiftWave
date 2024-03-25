@@ -30,6 +30,7 @@ class TaskViewModel : ViewModel(){
     var showDeleteStatusOption by mutableStateOf(false)
     var allEmojis by mutableStateOf(false)
     var isForwarding by mutableStateOf(false)
+    var isStatus by mutableStateOf(true)
 
     fun getTime(mills: Long): String {
         val calendar = Calendar.getInstance()

@@ -256,10 +256,10 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false) {
+    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false, storyReply: Boolean? = false) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded)
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded, storyReply = storyReply)
             firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)

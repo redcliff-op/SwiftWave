@@ -173,7 +173,8 @@ class MainActivity : ComponentActivity() {
                             composable(route = "Status"){
                                 statusScreen(
                                     firebaseViewModel = firebaseViewModel,
-                                    taskViewModel = taskViewModel
+                                    taskViewModel = taskViewModel,
+                                    navController = navController
                                 )
                             }
                             composable(route = "Login"){

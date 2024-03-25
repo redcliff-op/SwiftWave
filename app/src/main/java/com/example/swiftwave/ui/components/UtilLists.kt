@@ -55,3 +55,15 @@ val bottomNavBarList = listOf(
         bottomNavBarItem("Status", R.drawable.statusicon),
         bottomNavBarItem("Account", R.drawable.accounticon),
     )
+
+val doodleBackgroundList = listOf(
+    R.drawable.i0,
+    R.drawable.i1,
+    R.drawable.i2,
+    R.drawable.i3,
+    R.drawable.i4,
+    R.drawable.i5,
+    R.drawable.i6,
+    R.drawable.i7,
+    R.drawable.i8
+)

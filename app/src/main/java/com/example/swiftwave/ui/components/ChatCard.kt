@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -420,26 +422,55 @@ fun chatCard(
                                                     ){
                                                         CircularProgressIndicator()
                                                     }
+                                                },
+                                                error = {
+                                                    Row (
+                                                        modifier =  Modifier.fillMaxSize(),
+                                                        horizontalArrangement = Arrangement.Center,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ){
+                                                        Icon(
+                                                            painter = painterResource(id = R.drawable.erroricon),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(30.dp)
+                                                        )
+                                                    }
                                                 }
                                             )
                                             Spacer(modifier = Modifier.size(5.dp))
                                         }
-                                        Column {
-                                            if(messageData.repliedTo?.image!=null && messageData.repliedTo?.message!=""){
+                                        Column(
+                                            modifier = Modifier,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false){
                                                 Text(
                                                     text = "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
                                                     fontWeight = FontWeight.SemiBold,
+                                                    fontSize = fontSize.sp,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==true){
+                                                var storyUser = "Your"
+                                                if(messageData.repliedTo?.senderID!=firebaseViewModel.userData?.userId)
+                                                    storyUser = firebaseViewModel.chattingWith?.username.toString().substring(0,10).split(" ").get(0)+"'s"
+                                                Text(
+                                                    text = "Replied to\n$storyUser Story",
+                                                    color = MaterialTheme.colorScheme.primary,
                                                     fontSize = fontSize.sp
                                                 )
                                             }
-                                            Text(
-                                                text = messageData.repliedTo?.message.toString(),
-                                                color = Color.White,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                fontSize = fontSize.sp
-                                            )
+                                            if(messageData.repliedTo?.message?.isNotEmpty()==true){
+                                                Text(
+                                                    text = messageData.repliedTo?.message.toString(),
+                                                    color = Color.White,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    fontSize = fontSize.sp
+                                                )
+                                            }
                                         }
                                     }
                                 }

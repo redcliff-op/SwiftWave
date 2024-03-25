@@ -1,5 +1,6 @@
 package com.example.swiftwave.data.model
 
+
 data class MessageData(
     val message : String? = "",
     val senderID : String? = "",
@@ -10,5 +11,6 @@ data class MessageData(
     var repliedTo: MessageData? = null,
     var isForwarded: Boolean? = false,
     var starred: Boolean? = false,
-    var read: Boolean? = false
+    var read: Boolean? = false,
+    var storyReply: Boolean? = false
 )

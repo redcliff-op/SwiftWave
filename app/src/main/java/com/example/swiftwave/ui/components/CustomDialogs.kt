@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,10 +58,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.swiftwave.R
+import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 
@@ -186,6 +190,7 @@ fun DeleteMessageDialog(
 fun ImageDialog(
     taskViewModel : TaskViewModel,
     firebaseViewModel: FirebaseViewModel,
+    navController: NavController
 ){
     val ctx = LocalContext.current
     Dialog(
@@ -351,6 +356,62 @@ fun ImageDialog(
                             textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis
                         )
+                    }
+                }
+                if(taskViewModel.isStatus && !taskViewModel.showDeleteStatusOption){
+                    Row (
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ){
+                        OutlinedTextField(
+                            value = firebaseViewModel.text,
+                            onValueChange = {firebaseViewModel.text = it},
+                            shape = RoundedCornerShape(30.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            maxLines = 4,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.5f),
+                                focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary
+                            ),
+                            label = {
+                                Text(
+                                    text = "Reply",
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.padding(start = 10.dp),
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            },
+                        )
+                        AnimatedVisibility(visible = firebaseViewModel.text.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    firebaseViewModel.sendMessage(
+                                        otherUserId = firebaseViewModel.chattingWith?.userId.toString(),
+                                        message = firebaseViewModel.text,
+                                        repliedTo = MessageData(
+                                            senderID = firebaseViewModel.chattingWith?.userId.toString(),
+                                            image = firebaseViewModel.imageString
+                                        ),
+                                        storyReply = true
+                                    )
+                                    firebaseViewModel.text = ""
+                                    taskViewModel.showImageDialog = false
+                                    navController.navigate("PersonChat")
+                                }
+                            ){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.sendicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
                 }
             }

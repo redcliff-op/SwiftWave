@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
@@ -40,7 +42,8 @@ import com.example.swiftwave.ui.viewmodels.TaskViewModel
 @Composable
 fun statusScreen(
     firebaseViewModel: FirebaseViewModel,
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    navController: NavController
 ){
     firebaseViewModel.loadChatListUsers()
     val userList = firebaseViewModel.usersWithStatus.collectAsState(initial = emptyList())
@@ -57,7 +60,8 @@ fun statusScreen(
     if(taskViewModel.showImageDialog){
         ImageDialog(
             taskViewModel = taskViewModel,
-            firebaseViewModel = firebaseViewModel
+            firebaseViewModel = firebaseViewModel,
+            navController = navController
         )
     }
     Column(
