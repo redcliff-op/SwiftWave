@@ -2,6 +2,7 @@ package com.example.swiftwave.ui.viewmodels
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
+import com.example.swiftwave.data.model.StoryViewers
 import com.example.swiftwave.data.model.UserPref
 import com.example.swiftwave.data.remote.callNotifAPI
 import com.google.firebase.Firebase
@@ -57,6 +59,7 @@ class FirebaseViewModel: ViewModel() {
     var swapChatColors by mutableStateOf(false)
     var isLoadingUsers = false
     var isLoadingChat = false
+    var updatingStoryView = false
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -71,6 +74,8 @@ class FirebaseViewModel: ViewModel() {
     val searchContacts : StateFlow<List<UserData>> = _searchContacts
     private val _usersWithStatus = MutableStateFlow<List<UserData>>(emptyList())
     val usersWithStatus : StateFlow<List<UserData>> = _usersWithStatus
+    private val _storyViewers = MutableStateFlow<List<UserData>>(emptyList())
+    val storyViewers : StateFlow<List<UserData>> = _storyViewers
     private var conversationsListener: ListenerRegistration? = null
     val _viewedStatus = MutableStateFlow<MutableList<String?>>(emptyList<String>().toMutableList())
     val viewedStatus : StateFlow<MutableList<String?>> get() = _viewedStatus.asStateFlow()
@@ -119,6 +124,8 @@ class FirebaseViewModel: ViewModel() {
                 _chatListUsers.value = chatListUsers
 
                 updateStatusList()
+                updateStatusViewerList()
+                userData?.let { addUserToFirestore(it) }
 
                 val favoriteResults = favoriteQueries.awaitAll().map { it.toObject(UserData::class.java) }
                 val favoriteLatestMessageResults = favoriteLatestMessageQueries.awaitAll().map { it.toObject(MessageData::class.java) }
@@ -197,6 +204,7 @@ class FirebaseViewModel: ViewModel() {
                 }
                 userData?.blocked = currentUser?.blocked
                 userData?.userPref = currentUser?.userPref
+                userData?.viewedStories = currentUser?.viewedStories
                 swapChatColors = currentUser?.userPref?.swapChatColors == true
             }
         }
@@ -684,6 +692,7 @@ class FirebaseViewModel: ViewModel() {
             val userDocumentRef = firebase.collection("users").document(otherUserData.userId.toString())
             userDocumentRef.update("status", null)
             userDocumentRef.update("statusExpiry", null)
+            removeViewersOfDeletedStory(otherUserData.userId.toString())
         }
     }
 
@@ -783,4 +792,64 @@ class FirebaseViewModel: ViewModel() {
             userDocumentRef.update("userPref", userData?.userPref).await()
         }
     }
+
+    fun updateStatusViewerList(){
+        viewModelScope.launch (Dispatchers.IO){
+            val viewerList = mutableListOf<UserData>()
+            chatListUsers.value.forEach {
+                if(it.viewedStories?.any { it.userId == userData?.userId } == true){
+                    viewerList.add(it)
+                }
+            }
+            _storyViewers.value = viewerList
+        }
+    }
+
+    fun updateStoryView(userId: String, liked :Boolean ? = false) {
+        if(updatingStoryView){
+            return
+        }
+        updatingStoryView = true
+        viewModelScope.launch (Dispatchers.IO) {
+            val existingViewerIndex = userData?.viewedStories?.indexOfFirst { it.userId == userId }
+            if (existingViewerIndex == -1 || existingViewerIndex == null) {
+                val updatedViewedStories = userData?.viewedStories.orEmpty().toMutableList().apply {
+                    add(StoryViewers(userId = userId, liked = liked))
+                }
+                val updatedUserData = userData?.copy(viewedStories = updatedViewedStories)
+                userData = updatedUserData
+            } else {
+                if(existingViewerIndex.let { userData?.viewedStories?.get(it)?.liked } == false && liked == true){
+                    sendNotif("Liked Your Story !")
+                }
+                val updatedViewedStories = userData?.viewedStories.orEmpty().toMutableList().apply {
+                    this[existingViewerIndex] = StoryViewers(userId = userId, liked = liked)
+                }
+                val updatedUserData = userData?.copy(viewedStories = updatedViewedStories)
+                userData = updatedUserData
+            }
+            val userDocRef = firebase.collection("users").document(userData?.userId.toString())
+            userDocRef.update("viewedStories", userData?.viewedStories)
+            delay(500)
+            updatingStoryView = false
+        }
+    }
+
+    fun removeViewersOfDeletedStory(deletedStoryUserId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            firebase.collection("users").whereIn(FieldPath.documentId(), _storyViewers.value.map { it.userId })
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    querySnapshot.documents.forEach { document ->
+                        document.id
+                        val userData = document.toObject(UserData::class.java)
+                        val updatedViewedStories = userData?.viewedStories
+                            ?.filterNot { it.userId == deletedStoryUserId }
+                            ?: emptyList()
+                        document.reference.update("viewedStories", updatedViewedStories)
+                    }
+                }
+        }
+    }
+
 }

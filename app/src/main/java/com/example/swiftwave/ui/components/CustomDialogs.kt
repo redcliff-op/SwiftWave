@@ -204,6 +204,12 @@ fun ImageDialog(
             usePlatformDefaultWidth = false
         )
     ){
+        if(taskViewModel.showStoryViewers){
+            StoryViewersSheet(
+                firebaseViewModel = firebaseViewModel,
+                taskViewModel = taskViewModel
+            )
+        }
         ElevatedCard(
             colors = CardDefaults.cardColors(
                 containerColor = Color.Black
@@ -358,7 +364,20 @@ fun ImageDialog(
                         )
                     }
                 }
+                if(taskViewModel.showDeleteStatusOption){
+                    IconButton(onClick = {taskViewModel.showStoryViewers = true}) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.viewericon),
+                            contentDescription = null ,
+                            modifier = Modifier.size(35.dp)
+                        )
+                    }
+                }
                 if(taskViewModel.isStatus && !taskViewModel.showDeleteStatusOption){
+                    var isLiked by remember {
+                        mutableStateOf(firebaseViewModel.userData?.viewedStories?.indexOfFirst { it.liked == true && it.userId == firebaseViewModel.chattingWith?.userId } != -1)
+                    }
+                    firebaseViewModel.updateStoryView(firebaseViewModel.chattingWith?.userId.toString(), isLiked)
                     Row (
                         modifier = Modifier.fillMaxWidth(0.9f),
                         verticalAlignment = Alignment.CenterVertically,
@@ -387,6 +406,30 @@ fun ImageDialog(
                                 )
                             },
                         )
+                        AnimatedVisibility(visible = !firebaseViewModel.text.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    firebaseViewModel.updateStoryView(
+                                        firebaseViewModel.chattingWith?.userId.toString(),
+                                        !isLiked
+                                    )
+                                    isLiked = !isLiked
+                                }
+                            ){
+                                Icon(
+                                    painter = painterResource(
+                                        id =
+                                            if(isLiked)
+                                                R.drawable.likedicon
+                                            else
+                                                R.drawable.unlikedicon
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
                         AnimatedVisibility(visible = firebaseViewModel.text.isNotEmpty()) {
                             IconButton(
                                 onClick = {
