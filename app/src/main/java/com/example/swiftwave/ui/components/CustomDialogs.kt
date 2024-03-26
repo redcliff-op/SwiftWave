@@ -524,6 +524,7 @@ fun SetProfilePictureAndStatusDialog(
                     Spacer(modifier = Modifier.size(15.dp))
                     ElevatedButton(onClick = {
                         if(taskViewModel.isUploadingStatus){
+                            firebaseViewModel.userData?.let { firebaseViewModel.deleteStatus(it) }
                             firebaseViewModel.setStatus()
                         }else{
                             firebaseViewModel.updateProfilePic()
