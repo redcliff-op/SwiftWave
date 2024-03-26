@@ -330,7 +330,9 @@ class FirebaseViewModel: ViewModel() {
                 .get()
                 .await()
             _chatMessages.value = messages.toObjects(MessageData::class.java)
-            updateReadStatus()
+            if(userData?.userPref?.readRecipients==true){
+                updateReadStatus()
+            }
             isLoadingChat = false
         }
     }

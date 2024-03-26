@@ -9,5 +9,6 @@ data class UserPref(
     var doodleBackground: Float? = 1f,
     var doodleTint: Float? = 0.5f,
     var swapChatColors: Boolean ? = false,
-    var background:Int ? = R.drawable.i0
+    var background:Int ? = R.drawable.i0,
+    var readRecipients: Boolean? = true,
 )

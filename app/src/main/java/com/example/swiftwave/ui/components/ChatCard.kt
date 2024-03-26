@@ -637,7 +637,7 @@ fun chatCard(
                                     painter = painterResource(id = R.drawable.sentnotifiericon),
                                     contentDescription = null,
                                     tint =
-                                    if(messageData.read == true){
+                                    if(messageData.read == true && firebaseViewModel.userData?.userPref?.readRecipients==true){
                                         Color.White
                                     }else{
                                         Color.Gray

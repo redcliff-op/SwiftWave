@@ -22,9 +22,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +55,9 @@ fun accountScreen(
     firebaseViewModel: FirebaseViewModel,
     taskViewModel: TaskViewModel
 ){
+    var readRecipients by remember {
+        mutableStateOf(firebaseViewModel.userData?.userPref?.readRecipients)
+    }
     if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
         SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
@@ -244,6 +252,37 @@ fun accountScreen(
                     modifier = Modifier.size(30.dp)
                 )
             }
+        }
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "Read Receipts",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Allow both users to see read status",
+                    fontSize = 15.sp,
+                    color = Color.Gray
+                )
+            }
+            Switch(
+                checked = readRecipients!!,
+                onCheckedChange = {
+                    readRecipients = it
+                    firebaseViewModel.userData?.userPref?.readRecipients = it
+                    firebaseViewModel.updateChatPreferences()
+                }
+            )
         }
     }
 }
