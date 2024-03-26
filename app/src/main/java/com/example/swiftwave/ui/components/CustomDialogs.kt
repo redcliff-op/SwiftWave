@@ -273,7 +273,9 @@ fun ImageDialog(
                 }
                 if(taskViewModel.showDeleteStatusOption){
                     IconButton(onClick = {
-                        firebaseViewModel.userData?.let { firebaseViewModel.deleteStatus(it) }
+                        if(firebaseViewModel.curUserStatus){
+                            firebaseViewModel.userData?.let { firebaseViewModel.deleteStatus(it) }
+                        }
                         taskViewModel.showImageDialog = false;
                         Toast.makeText(
                             ctx,
@@ -524,6 +526,7 @@ fun SetProfilePictureAndStatusDialog(
                     Spacer(modifier = Modifier.size(15.dp))
                     ElevatedButton(onClick = {
                         if(taskViewModel.isUploadingStatus){
+                            firebaseViewModel.userData?.let { firebaseViewModel.deleteStatus(it) }
                             firebaseViewModel.setStatus()
                         }else{
                             firebaseViewModel.updateProfilePic()
