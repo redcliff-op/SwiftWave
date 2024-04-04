@@ -31,10 +31,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +52,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -84,6 +91,7 @@ import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.chatCard
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -417,98 +425,135 @@ fun personChatScreen(
                         listState.animateScrollToItem(chatList.value.size-1- index.value!!)
                     }
                 }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .height(50.dp)
-                        .weight(1f),
-                    reverseLayout = true,
-                    state = listState
-                ) {
-                    itemsIndexed(
-                        items = chatList.value.sortedBy { it.time }.reversed(),
-                        key = { index, item ->
-                            "${item.time}"
+                var currentIndex by remember { mutableIntStateOf(0) }
+                LaunchedEffect(listState) {
+                    snapshotFlow { listState.firstVisibleItemIndex }
+                        .collect { newIndex ->
+                            currentIndex = newIndex
                         }
-                    ) {index, message ->
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            initialValue = SwipeToDismissBoxValue.Settled,
-                            positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 10 },
-                            confirmValueChange = {
-                                if (it == SwipeToDismissBoxValue.StartToEnd) {
-                                    firebaseViewModel.repliedTo = message
-                                    false
-                                } else if(it == SwipeToDismissBoxValue.EndToStart){
-                                    taskViewModel.isForwarding = true
-                                    firebaseViewModel.forwarded = message
-                                    firebaseViewModel.forwarded?.isForwarded = true
-                                    navController.navigate("ForwardScreen")
-                                    false
-                                }else{
-                                    false
-                                }
+                }
+                Box (
+                   modifier = Modifier.weight(1f)
+                ){
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .height(50.dp),
+                        reverseLayout = true,
+                        state = listState
+                    ) {
+                        itemsIndexed(
+                            items = chatList.value.sortedBy { it.time }.reversed(),
+                            key = { index, item ->
+                                "${item.time}"
                             }
-                        )
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = {
-                                AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
-                                    Row (
-                                        modifier = Modifier.fillMaxHeight(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ){
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.reply),
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(50.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                        Text(
-                                            text = "Reply",
-                                            fontWeight = FontWeight.Bold
-                                        )
+                        ) {index, message ->
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                initialValue = SwipeToDismissBoxValue.Settled,
+                                positionalThreshold = { swipeActivationFloat -> swipeActivationFloat / 10 },
+                                confirmValueChange = {
+                                    if (it == SwipeToDismissBoxValue.StartToEnd) {
+                                        firebaseViewModel.repliedTo = message
+                                        false
+                                    } else if(it == SwipeToDismissBoxValue.EndToStart){
+                                        taskViewModel.isForwarding = true
+                                        firebaseViewModel.forwarded = message
+                                        firebaseViewModel.forwarded?.isForwarded = true
+                                        navController.navigate("ForwardScreen")
+                                        false
+                                    }else{
+                                        false
                                     }
                                 }
-                                AnimatedVisibility(
-                                    visible = dismissState.targetValue == SwipeToDismissBoxValue.EndToStart,
-                                    enter = slideInHorizontally (
-                                        initialOffsetX = { fullWidth -> fullWidth }
-                                    ),
-                                    exit = slideOutHorizontally(
-                                        targetOffsetX = { fullWidth -> fullWidth }
+                            )
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = {
+                                    AnimatedVisibility(visible = dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
+                                        Row (
+                                            modifier = Modifier.fillMaxHeight(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.reply),
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(50.dp)
+                                            )
+                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Text(
+                                                text = "Reply",
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                    AnimatedVisibility(
+                                        visible = dismissState.targetValue == SwipeToDismissBoxValue.EndToStart,
+                                        enter = slideInHorizontally (
+                                            initialOffsetX = { fullWidth -> fullWidth }
+                                        ),
+                                        exit = slideOutHorizontally(
+                                            targetOffsetX = { fullWidth -> fullWidth }
+                                        )
+                                    ) {
+                                        Row (
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.End
+                                        ){
+                                            Text(
+                                                text = "Forward",
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(modifier = Modifier.size(10.dp))
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.forward),
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(50.dp)
+                                            )
+                                            Spacer(modifier = Modifier.size(20.dp))
+                                        }
+                                    }
+                                },
+                                content = {
+                                    chatCard(
+                                        message,
+                                        chatList.value.size-1-index,
+                                        firebaseViewModel,
+                                        taskViewModel
                                     )
-                                ) {
-                                    Row (
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.End
-                                    ){
-                                        Text(
-                                            text = "Forward",
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.forward),
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(50.dp)
-                                        )
-                                        Spacer(modifier = Modifier.size(20.dp))
+                                },
+                            )
+                        }
+                    }
+                    val corLaunch = rememberCoroutineScope()
+                    Row (
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.Bottom
+                    ){
+                        AnimatedVisibility(visible = currentIndex >= 3) {
+                            FloatingActionButton(
+                                onClick = {
+                                    corLaunch.launch {
+                                        listState.animateScrollToItem(0)
                                     }
-                                }
-                            },
-                            content = {
-                                chatCard(
-                                    message,
-                                    chatList.value.size-1-index,
-                                    firebaseViewModel,
-                                    taskViewModel
+                                },
+                                modifier = Modifier.padding(10.dp),
+                                containerColor =
+                                if(firebaseViewModel.userData?.userPref?.swapChatColors!!)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surface
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                                    contentDescription = null
                                 )
-                            },
-                        )
+                            }
+                        }
                     }
                 }
                 AnimatedVisibility(visible =userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.typing == firebaseViewModel.userData?.userId) {
