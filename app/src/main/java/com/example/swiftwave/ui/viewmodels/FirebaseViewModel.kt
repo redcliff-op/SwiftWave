@@ -839,19 +839,21 @@ class FirebaseViewModel: ViewModel() {
 
     fun removeViewersOfDeletedStory(deletedStoryUserId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            firebase.collection("users").whereIn(FieldPath.documentId(), _storyViewers.value.map { it.userId })
-                .get()
-                .addOnSuccessListener { querySnapshot ->
-                    querySnapshot.documents.forEach { document ->
-                        document.id
-                        val userData = document.toObject(UserData::class.java)
-                        val updatedViewedStories = userData?.viewedStories
-                            ?.filterNot { it.userId == deletedStoryUserId }
-                            ?: emptyList()
-                        document.reference.update("viewedStories", updatedViewedStories)
+            val storyViewers = _storyViewers.value
+            if (storyViewers.isNotEmpty()) {
+                firebase.collection("users").whereIn(FieldPath.documentId(), storyViewers.map { it.userId })
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        querySnapshot.documents.forEach { document ->
+                            document.id
+                            val userData = document.toObject(UserData::class.java)
+                            val updatedViewedStories = userData?.viewedStories
+                                ?.filterNot { it.userId == deletedStoryUserId }
+                                ?: emptyList()
+                            document.reference.update("viewedStories", updatedViewedStories)
+                        }
                     }
-                }
+            }
         }
     }
-
 }
