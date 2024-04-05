@@ -32,6 +32,7 @@ class TaskViewModel : ViewModel(){
     var isForwarding by mutableStateOf(false)
     var isStatus by mutableStateOf(true)
     var showStoryViewers by mutableStateOf(false)
+    var searchMessages by mutableStateOf(false)
 
     fun getTime(mills: Long): String {
         val calendar = Calendar.getInstance()

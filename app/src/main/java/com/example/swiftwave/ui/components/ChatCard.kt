@@ -150,7 +150,7 @@ fun chatCard(
                 .padding(vertical = 2.dp)
                 .background(
                     color =
-                    if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString() || firebaseViewModel.repliedToIndex.collectAsState().value == index) {
+                    if (firebaseViewModel.selectedMessage?.time.toString() == messageData.time.toString() || firebaseViewModel.repliedToIndex.collectAsState().value == index || firebaseViewModel.searchIndex == index) {
                         MaterialTheme.colorScheme.secondary.copy(0.5f)
                     } else {
                         Color.Transparent

@@ -6,9 +6,12 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,8 +32,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
@@ -40,12 +49,15 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -70,6 +82,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,11 +117,14 @@ fun personChatScreen(
     firebaseViewModel.getMessagesWithUser()
     val chatList = firebaseViewModel.chatMessages.collectAsState()
     val userList by firebaseViewModel.chatListUsers.collectAsState()
+    val searchMessageList by firebaseViewModel.searchMessages.collectAsState()
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {uri -> firebaseViewModel.imageUri = uri}
     )
     val ctx = LocalContext.current
+    val corLaunch = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     val imageLoader = ImageLoader.Builder(ctx)
         .components {
             if (Build.VERSION.SDK_INT >= 28) {
@@ -129,6 +145,10 @@ fun personChatScreen(
             firebaseViewModel.updateTypingStatus(false)
             firebaseViewModel.repliedTo = null
             taskViewModel.isStatus = true
+            firebaseViewModel.searchText = ""
+            firebaseViewModel.searchListIndex = null
+            firebaseViewModel.searchIndex = null
+            taskViewModel.searchMessages = false
         }
     }
 
@@ -154,8 +174,10 @@ fun personChatScreen(
         )
     }
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier =
+            if(taskViewModel.searchMessages) Modifier
+                .fillMaxSize()
+                .imePadding() else Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
@@ -165,7 +187,9 @@ fun personChatScreen(
             ),
             shape = RectangleShape,
             onClick = {
-                taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                if(!taskViewModel.searchMessages){
+                    taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                }
             }
         ) {
             Row (
@@ -181,6 +205,124 @@ fun personChatScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
+                AnimatedVisibility(
+                    visible = taskViewModel.searchMessages,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ){
+                            IconButton(
+                                onClick = {
+                                    taskViewModel.searchMessages = false
+                                    firebaseViewModel.searchText = ""
+                                    firebaseViewModel.searchListIndex = null
+                                    firebaseViewModel.searchIndex = null
+                                }
+                            ){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.backicon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                            TextField(
+                                value = firebaseViewModel.searchText,
+                                onValueChange = {
+                                    firebaseViewModel.searchText = it
+                                    firebaseViewModel.updateSearchMessageList(
+                                        chatList.value,
+                                        firebaseViewModel.searchText
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                singleLine = true,
+                                maxLines = 1,
+                                label = {
+                                    Text(text = "Search Messages")
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Search
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onSearch = {
+                                        firebaseViewModel.updateSearchMessageIndex()
+                                        if(firebaseViewModel.searchIndex!=null){
+                                            corLaunch.launch {
+                                                listState.animateScrollToItem(chatList.value.size-1 - firebaseViewModel.searchIndex!!)
+                                            }
+                                        }
+                                    }
+                                )
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .clickable {
+                                        if (firebaseViewModel.searchListIndex != null && firebaseViewModel.searchListIndex != searchMessageList.size - 1) {
+                                            firebaseViewModel.searchListIndex =
+                                                firebaseViewModel.searchListIndex!! + 1
+                                            firebaseViewModel.updateSearchMessageIndex()
+                                            if (firebaseViewModel.searchIndex != null) {
+                                                corLaunch.launch {
+                                                    listState.animateScrollToItem(chatList.value.size - 1 - firebaseViewModel.searchIndex!!)
+                                                }
+                                            }
+                                        }
+                                    },
+                                tint =
+                                    if(firebaseViewModel.searchListIndex == null || firebaseViewModel.searchListIndex == searchMessageList.size-1){
+                                        Color.Gray
+                                    }else
+                                        LocalContentColor.current
+                            )
+                            Spacer(modifier = Modifier.size(5.dp))
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowUp,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .clickable {
+                                        if (firebaseViewModel.searchListIndex != null && firebaseViewModel.searchListIndex != 0) {
+                                            firebaseViewModel.searchListIndex =
+                                                firebaseViewModel.searchListIndex!! - 1
+                                            firebaseViewModel.updateSearchMessageIndex()
+                                            if (firebaseViewModel.searchIndex != null) {
+                                                corLaunch.launch {
+                                                    listState.animateScrollToItem(chatList.value.size - 1 - firebaseViewModel.searchIndex!!)
+                                                }
+                                            }
+                                        }
+                                    },
+                                tint =
+                                    if(firebaseViewModel.searchListIndex == null || firebaseViewModel.searchListIndex == 0){
+                                        Color.Gray
+                                    }else
+                                        LocalContentColor.current
+                            )
+                        }
+                    }
+                }
                 IconButton(
                     onClick = {
                         navController.navigateUp()
@@ -228,7 +370,18 @@ fun personChatScreen(
                     }
                 }
                 IconButton(onClick = {
-                    taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                    taskViewModel.searchMessages = !taskViewModel.searchMessages
+                }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
+                IconButton(onClick = {
+                    if(!taskViewModel.searchMessages){
+                        taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                    }
                 }) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
@@ -412,7 +565,6 @@ fun personChatScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                val listState = rememberLazyListState()
                 val index = firebaseViewModel.repliedToIndex.collectAsState()
                 LaunchedEffect(Unit) {
                     listState.animateScrollToItem(0)
@@ -528,13 +680,12 @@ fun personChatScreen(
                             )
                         }
                     }
-                    val corLaunch = rememberCoroutineScope()
                     Row (
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.Bottom
                     ){
-                        AnimatedVisibility(visible = currentIndex >= 3) {
+                        AnimatedVisibility(visible = currentIndex >= 3 && !taskViewModel.searchMessages) {
                             FloatingActionButton(
                                 onClick = {
                                     corLaunch.launch {
@@ -783,91 +934,94 @@ fun personChatScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }else{
-                    Row (
-                        modifier = Modifier.fillMaxWidth(0.9f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ){
-                        OutlinedTextField(
-                            value = firebaseViewModel.text,
-                            onValueChange = {
-                                newText -> firebaseViewModel.text = newText
-                                firebaseViewModel.updateTypingStatus()
-                            },
-                            shape = RoundedCornerShape(30.dp),
-                            label = {
-                                Text(
-                                    text = "Message",
-                                    fontSize = 15.sp,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            maxLines = 4,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedBorderColor = Color.Transparent,
-                            ),
-                            trailingIcon = {
-                                AnimatedVisibility(visible = firebaseViewModel.imageUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
-                                    IconButton(
-                                        onClick = {
-                                            imagePicker.launch(
-                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    AnimatedVisibility(visible = !taskViewModel.searchMessages) {
+                        Row (
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ){
+
+                            OutlinedTextField(
+                                value = firebaseViewModel.text,
+                                onValueChange = {
+                                        newText -> firebaseViewModel.text = newText
+                                    firebaseViewModel.updateTypingStatus()
+                                },
+                                shape = RoundedCornerShape(30.dp),
+                                label = {
+                                    Text(
+                                        text = "Message",
+                                        fontSize = 15.sp,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                maxLines = 4,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedBorderColor = Color.Transparent,
+                                ),
+                                trailingIcon = {
+                                    AnimatedVisibility(visible = firebaseViewModel.imageUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
+                                        IconButton(
+                                            onClick = {
+                                                imagePicker.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            },
+                                            modifier = Modifier.padding(end = 10.dp)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.sendimageicon),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(30.dp),
+                                                tint = MaterialTheme.colorScheme.primary
                                             )
-                                        },
-                                        modifier = Modifier.padding(end = 10.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.sendimageicon),
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .size(30.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                        }
                                     }
                                 }
-                            }
-                        )
-                        AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
-                            IconButton(
-                                onClick = {
-                                    firebaseViewModel.updateTypingStatus(false)
-                                    if(taskViewModel.isEditing){
-                                        firebaseViewModel.editMessage(
-                                            firebaseViewModel.chattingWith?.userId.toString(),
-                                            firebaseViewModel.selectedMessage?.time!!,
-                                            firebaseViewModel.text,
-                                            if(firebaseViewModel.selectedMessage!!.curUserReaction==null){
-                                                null
-                                            }else{
-                                                firebaseViewModel.selectedMessage!!.curUserReaction
-                                            }
-                                        )
-                                    }else{
-                                        firebaseViewModel.uploadImageAndSendMessage(
-                                            firebaseViewModel.chattingWith?.userId.toString(),
-                                            firebaseViewModel.text,
-                                            repliedTo = firebaseViewModel.repliedTo
-                                        )
+                            )
+                            AnimatedVisibility(visible = firebaseViewModel.imageUri!=null || firebaseViewModel.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = {
+                                        firebaseViewModel.updateTypingStatus(false)
+                                        if(taskViewModel.isEditing){
+                                            firebaseViewModel.editMessage(
+                                                firebaseViewModel.chattingWith?.userId.toString(),
+                                                firebaseViewModel.selectedMessage?.time!!,
+                                                firebaseViewModel.text,
+                                                if(firebaseViewModel.selectedMessage!!.curUserReaction==null){
+                                                    null
+                                                }else{
+                                                    firebaseViewModel.selectedMessage!!.curUserReaction
+                                                }
+                                            )
+                                        }else{
+                                            firebaseViewModel.uploadImageAndSendMessage(
+                                                firebaseViewModel.chattingWith?.userId.toString(),
+                                                firebaseViewModel.text,
+                                                repliedTo = firebaseViewModel.repliedTo
+                                            )
+                                        }
+                                        firebaseViewModel.text = ""
+                                        firebaseViewModel.imageUri = null
+                                        taskViewModel.isEditing = false
+                                        taskViewModel.chatOptions = false
+                                        firebaseViewModel.selectedMessage = null
+                                        firebaseViewModel.repliedTo = null
                                     }
-                                    firebaseViewModel.text = ""
-                                    firebaseViewModel.imageUri = null
-                                    taskViewModel.isEditing = false
-                                    taskViewModel.chatOptions = false
-                                    firebaseViewModel.selectedMessage = null
-                                    firebaseViewModel.repliedTo = null
+                                ){
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.sendicon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(30.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
                                 }
-                            ){
-                                Icon(
-                                    painter = painterResource(id = R.drawable.sendicon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(30.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
                             }
                         }
                     }

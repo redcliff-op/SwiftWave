@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -60,6 +61,9 @@ class FirebaseViewModel: ViewModel() {
     var isLoadingUsers = false
     var isLoadingChat = false
     var updatingStoryView = false
+    var searchText by mutableStateOf("")
+    var searchIndex by mutableStateOf<Int?>(null)
+    var searchListIndex by mutableStateOf<Int?>(null)
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -79,6 +83,8 @@ class FirebaseViewModel: ViewModel() {
     private var conversationsListener: ListenerRegistration? = null
     val _viewedStatus = MutableStateFlow<MutableList<String?>>(emptyList<String>().toMutableList())
     val viewedStatus : StateFlow<MutableList<String?>> get() = _viewedStatus.asStateFlow()
+    private val _searchMessages = MutableStateFlow<List<MessageData>>(emptyList())
+    val searchMessages : StateFlow<List<MessageData>> = _searchMessages
     private val _repliedToIndex = MutableStateFlow<Int?>(null)
     val repliedToIndex : StateFlow<Int?> = _repliedToIndex
     val listeners = mutableListOf<ListenerRegistration>()
@@ -853,6 +859,31 @@ class FirebaseViewModel: ViewModel() {
                             document.reference.update("viewedStories", updatedViewedStories)
                         }
                     }
+            }
+        }
+    }
+
+    fun updateSearchMessageList(list: List<MessageData>, message: String){
+        viewModelScope.launch (Dispatchers.Default){
+            val messageList = chatMessages.value.filter {
+                it.message!!.contains(message,true)
+            }
+            _searchMessages.emit(messageList)
+            if(messageList.isNotEmpty()){
+                searchListIndex = searchMessages.value.size-1
+            }
+        }
+    }
+
+    fun updateSearchMessageIndex(){
+        viewModelScope.launch (Dispatchers.Default){
+            if(searchMessages.value.isNotEmpty()){
+                searchIndex = chatMessages.value.indexOfFirst { it.time == searchListIndex?.let { it1 ->
+                    searchMessages.value[it1].time
+                } }
+                if(searchIndex == -1){
+                    searchIndex = null
+                }
             }
         }
     }
