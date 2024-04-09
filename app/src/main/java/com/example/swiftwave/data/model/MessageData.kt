@@ -12,5 +12,6 @@ data class MessageData(
     var isForwarded: Boolean? = false,
     var starred: Boolean? = false,
     var read: Boolean? = false,
-    var storyReply: Boolean? = false
+    var storyReply: Boolean? = false,
+    var isVideo: Boolean? = false
 )

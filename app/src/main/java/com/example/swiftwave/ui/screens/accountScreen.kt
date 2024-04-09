@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +57,7 @@ fun accountScreen(
     var readRecipients by remember {
         mutableStateOf(firebaseViewModel.userData?.userPref?.readRecipients)
     }
-    if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
+    if(firebaseViewModel.mediaUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
         SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
             taskViewModel = taskViewModel
@@ -66,7 +65,7 @@ fun accountScreen(
     }
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = {uri -> firebaseViewModel.imageUri = uri}
+        onResult = {uri -> firebaseViewModel.mediaUri = uri}
     )
     Column(
         modifier = Modifier

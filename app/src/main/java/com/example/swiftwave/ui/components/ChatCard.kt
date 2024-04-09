@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,6 +46,9 @@ import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
+import io.sanghun.compose.video.RepeatMode
+import io.sanghun.compose.video.VideoPlayer
+import io.sanghun.compose.video.uri.VideoPlayerMediaItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -160,6 +162,11 @@ fun chatCard(
                     onLongClick = {
                         if (firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false) {
                             firebaseViewModel.selectedMessage = messageData
+                            if(messageData.isVideo==true){
+                                firebaseViewModel.isUploadingVideo = true
+                            }else{
+                                firebaseViewModel.isUploadingVideo = false
+                            }
                             taskViewModel.chatOptions = true
                         }
                     },
@@ -324,7 +331,7 @@ fun chatCard(
                         if(messageData.senderID==firebaseViewModel.userData?.userId)
                             Alignment.End
                         else
-                            Alignment.Start
+                            Alignment.Start,
                     ){
                         if(messageData.repliedTo!=null){
                             val user =
@@ -336,9 +343,9 @@ fun chatCard(
                             Card(
                                 modifier = Modifier
                                     .padding(
-                                        top = 10.dp,
-                                        bottom = 0.dp,
-                                        start = 6.dp,
+                                        top = 5.dp,
+                                        bottom = 5.dp,
+                                        start = 5.dp,
                                         end = 5.dp
                                     )
                                     .clickable {
@@ -346,12 +353,7 @@ fun chatCard(
                                             firebaseViewModel.findRepliedToIndex(it)
                                         }
                                     },
-                                shape =
-                                    if(roundedCornerRadius<=10){
-                                        RoundedCornerShape(10.dp)
-                                    }else{
-                                         RoundedCornerShape((roundedCornerRadius-10).dp)
-                                    },
+                                shape = RoundedCornerShape(roundedCornerRadius.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor =
                                         if(messageData.senderID==firebaseViewModel.userData?.userId){
@@ -406,44 +408,63 @@ fun chatCard(
                                         verticalAlignment = Alignment.CenterVertically
                                     ){
                                         if(messageData.repliedTo?.image!=null){
-                                            SubcomposeAsyncImage(
-                                                model = messageData.repliedTo?.image,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .size(40.dp)
-                                                    .aspectRatio(1f)
-                                                    .clip(shape = RoundedCornerShape(4.dp)),
-                                                contentScale = ContentScale.Crop,
-                                                loading = {
-                                                    Row (
-                                                        modifier =  Modifier.fillMaxSize(),
-                                                        horizontalArrangement = Arrangement.Center,
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ){
-                                                        CircularProgressIndicator()
-                                                    }
-                                                },
-                                                error = {
-                                                    Row (
-                                                        modifier =  Modifier.fillMaxSize(),
-                                                        horizontalArrangement = Arrangement.Center,
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ){
-                                                        Icon(
-                                                            painter = painterResource(id = R.drawable.erroricon),
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(30.dp)
-                                                        )
-                                                    }
-                                                }
-                                            )
+                                            if(messageData.repliedTo?.isVideo==true){
+                                                Icon(
+                                                        painter = painterResource(id = R.drawable.videonotifiericon),
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                                .size(25.dp),
+                                                        tint = Color.White
+                                                )
+                                            }else{
+                                                SubcomposeAsyncImage(
+                                                        model = messageData.repliedTo?.image,
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                                .size(40.dp)
+                                                                .aspectRatio(1f)
+                                                                .clip(shape = RoundedCornerShape(4.dp)),
+                                                        contentScale = ContentScale.Crop,
+                                                        loading = {
+                                                            Row (
+                                                                    modifier =  Modifier.fillMaxSize(),
+                                                                    horizontalArrangement = Arrangement.Center,
+                                                                    verticalAlignment = Alignment.CenterVertically
+                                                            ){
+                                                                CircularProgressIndicator()
+                                                            }
+                                                        },
+                                                        error = {
+                                                            Row (
+                                                                    modifier =  Modifier.fillMaxSize(),
+                                                                    horizontalArrangement = Arrangement.Center,
+                                                                    verticalAlignment = Alignment.CenterVertically
+                                                            ){
+                                                                Icon(
+                                                                        painter = painterResource(id = R.drawable.erroricon),
+                                                                        contentDescription = null,
+                                                                        modifier = Modifier.size(30.dp)
+                                                                )
+                                                            }
+                                                        }
+                                                )
+                                            }
                                             Spacer(modifier = Modifier.size(5.dp))
                                         }
                                         Column(
                                             modifier = Modifier,
                                             verticalArrangement = Arrangement.Center
                                         ) {
-                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false){
+                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false && messageData.repliedTo?.isVideo==true && messageData.repliedTo?.message?.isEmpty()==true){
+                                                Text(
+                                                        text = "Video",
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        fontSize = fontSize.sp,
+                                                        textAlign = TextAlign.Center
+                                                )
+                                            }
+                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false && messageData.repliedTo?.isVideo==false){
                                                 Text(
                                                     text = "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
@@ -477,41 +498,145 @@ fun chatCard(
                             }
                         }
                         if(messageData.image!=null){
-                            SubcomposeAsyncImage(
-                                model = messageData.image,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(280.dp)
-                                    .padding(
-                                        start = 7.dp,
-                                        end = 7.dp,
-                                        top = 7.dp,
+                            if(messageData.isVideo==true){
+                                Box(
+                                    modifier = Modifier.size(300.dp),
+                                    contentAlignment = Alignment.Center
+                                ){
+                                    VideoPlayer(
+                                        mediaItems = listOf(
+                                            VideoPlayerMediaItem.NetworkMediaItem(
+                                                url = messageData.image,
+                                            )
+                                        ),
+                                        handleLifecycle = false,
+                                        autoPlay = false,
+                                        usePlayerController = false,
+                                        enablePip = false,
+                                        handleAudioFocus = true,
+                                        volume = 0.5f,
+                                        repeatMode = RepeatMode.NONE,
+                                        modifier = Modifier
+                                            .size(300.dp)
+                                            .padding(
+                                                start = 3.dp,
+                                                end = 3.dp,
+                                                top = 3.dp
+                                            )
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .align(Alignment.Center),
                                     )
-                                    .clickable {
-                                        firebaseViewModel.imageString = messageData.image
-                                        firebaseViewModel.imageViewText =
-                                            messageData.message.toString()
-                                        firebaseViewModel.sentBy = messageData.senderID.toString()
-                                        taskViewModel.showImageDialog =
-                                            !taskViewModel.showImageDialog
-                                        if (firebaseViewModel.sentBy == firebaseViewModel.userData?.userId) {
-                                            firebaseViewModel.imageDialogProfilePicture =
-                                                firebaseViewModel.profilePicture
-                                        } else {
-                                            firebaseViewModel.imageDialogProfilePicture =
-                                                firebaseViewModel.chattingWith?.profilePictureUrl.toString()
-                                        }
-                                    },
-                                contentScale = ContentScale.Crop,
-                                loading = {
-                                    Row (
+                                    Row(
+                                        modifier = Modifier
+                                            .size(300.dp)
+                                            .clickable {
+                                                firebaseViewModel.videoString = messageData.image
+                                                firebaseViewModel.mediaViewText =
+                                                    messageData.message.toString()
+                                                firebaseViewModel.sentBy =
+                                                    messageData.senderID.toString()
+                                                taskViewModel.showVideoDialog =
+                                                    !taskViewModel.showVideoDialog
+                                                if (firebaseViewModel.sentBy == firebaseViewModel.userData?.userId) {
+                                                    firebaseViewModel.imageDialogProfilePicture =
+                                                        firebaseViewModel.profilePicture
+                                                } else {
+                                                    firebaseViewModel.imageDialogProfilePicture =
+                                                        firebaseViewModel.chattingWith?.profilePictureUrl.toString()
+                                                }
+                                            },
                                         horizontalArrangement = Arrangement.Center,
                                         verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.playicon),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .background(
+                                                    color = Color.White,
+                                                    shape = CircleShape
+                                                ),
+                                            tint = Color.Unspecified
+                                        )
+                                    }
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.BottomStart
                                     ){
-                                        CircularProgressIndicator()
+                                        Row (
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ){
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(
+                                                        horizontal = 15.dp,
+                                                        vertical = 8.dp
+                                                    )
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.secondaryContainer,
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    )
+                                            ){
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(horizontal = 5.dp)
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = R.drawable.videonotifiericon),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(20.dp),
+                                                        tint = Color.White
+                                                    )
+                                                    Spacer(modifier = Modifier.size(5.dp))
+                                                    Text(
+                                                        text = "Video",
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            )
+                            }else{
+                                SubcomposeAsyncImage(
+                                    model = messageData.image,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 3.dp,
+                                            end = 3.dp,
+                                            top = 3.dp,
+                                        )
+                                        .clickable {
+                                            firebaseViewModel.imageString = messageData.image
+                                            firebaseViewModel.mediaViewText =
+                                                messageData.message.toString()
+                                            firebaseViewModel.sentBy =
+                                                messageData.senderID.toString()
+                                            taskViewModel.showImageDialog =
+                                                !taskViewModel.showImageDialog
+                                            if (firebaseViewModel.sentBy == firebaseViewModel.userData?.userId) {
+                                                firebaseViewModel.imageDialogProfilePicture =
+                                                    firebaseViewModel.profilePicture
+                                            } else {
+                                                firebaseViewModel.imageDialogProfilePicture =
+                                                    firebaseViewModel.chattingWith?.profilePictureUrl.toString()
+                                            }
+                                        }.size(280.dp)
+                                        .clip(RoundedCornerShape(10.dp)),
+                                    contentScale = ContentScale.Crop,
+                                    loading = {
+                                        Row (
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.size(280.dp)
+                                        ){
+                                            CircularProgressIndicator()
+                                        }
+                                    }
+                                )
+                            }
                         }
                         if(messageData.message?.isNotEmpty() == true){
                             Text(
@@ -519,25 +644,28 @@ fun chatCard(
                                 modifier = Modifier
                                     .padding(
                                         start = 15.dp,
-                                        top = if(messageData.repliedTo!=null) 5.dp else 10.dp,
+                                        top = if(messageData.repliedTo!=null) 0.dp else 5.dp,
                                         end = 15.dp
                                     ),
                                 fontSize = fontSize.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color.White
+                                color = Color.White,
                             )
                         }
                         Row (
                             modifier = Modifier
                                 .padding(
-                                    bottom = 5.dp,
                                     start = 10.dp,
-                                    top =
-                                    if(messageData.image!=null && messageData.message.toString().isEmpty()){
-                                        5.dp
-                                    }else{
+                                    end = 10.dp,
+                                    bottom =
+                                        if(messageData.curUserReaction!=null || messageData.otherUserReaction!=null)
+                                            2.dp
+                                        else
+                                            0.dp,
+                                    top = if((messageData.curUserReaction!=null || messageData.otherUserReaction!=null) && messageData.message?.isEmpty()==true)
+                                        2.dp
+                                    else
                                         0.dp
-                                    },
                                 ),
                             verticalAlignment = Alignment.CenterVertically
                         ){
@@ -549,7 +677,7 @@ fun chatCard(
                                 )
                             }
                             Text(
-                                text = taskViewModel.getTime(messageData.time?.toLong() ?: 0),
+                                text = taskViewModel.getTime(messageData.time ?: 0),
                                 color = Color.Gray,
                                 modifier = Modifier.padding(start = 5.dp, end = 5.dp),
                                 fontSize = 12.sp,
@@ -631,7 +759,6 @@ fun chatCard(
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.size(5.dp))
                             if(messageData.senderID==firebaseViewModel.userData?.userId){
                                 Icon(
                                     painter = painterResource(id = R.drawable.sentnotifiericon),
@@ -646,7 +773,6 @@ fun chatCard(
                                         .size(20.dp)
                                 )
                             }
-                            Spacer(modifier = Modifier.size(10.dp))
                         }
                     }
                 }

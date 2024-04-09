@@ -52,7 +52,7 @@ fun PersonCard(
             firebaseViewModel.startMessageListener()
             navController.navigate("PersonChat")
             if(taskViewModel.isForwarding){
-                firebaseViewModel.uploadImageAndSendMessage(
+                firebaseViewModel.uploadMediaAndSendMessage(
                     firebaseViewModel.chattingWith?.userId.toString(),
                     firebaseViewModel.forwarded?.message.toString(),
                     null
@@ -108,11 +108,18 @@ fun PersonCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ){
                         Row(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             if(userData.latestMessage?.image !=null){
                                 Icon(
-                                    painter = painterResource(id = R.drawable.latestimageicon),
+                                    painter = painterResource(
+                                        id = if(userData.latestMessage?.isVideo==true){
+                                            R.drawable.videonotifiericon
+                                        }else{
+                                            R.drawable.latestimageicon
+                                        }
+                                    ),
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.secondary

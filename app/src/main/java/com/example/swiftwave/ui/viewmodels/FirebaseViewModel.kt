@@ -2,10 +2,8 @@ package com.example.swiftwave.ui.viewmodels
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -43,9 +41,10 @@ class FirebaseViewModel: ViewModel() {
     var userData: UserData? = null
     var chattingWith by mutableStateOf<UserData?>(null)
     var text by mutableStateOf("")
-    var imageUri by mutableStateOf<Uri?>(null)
+    var mediaUri by mutableStateOf<Uri?>(null)
     var imageString by mutableStateOf("")
-    var imageViewText by mutableStateOf("")
+    var videoString by mutableStateOf("")
+    var mediaViewText by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
     var selectedMessage by mutableStateOf<MessageData?>(null)
@@ -56,7 +55,7 @@ class FirebaseViewModel: ViewModel() {
     var curUserStatus by mutableStateOf(false)
     var sentBy by mutableStateOf("")
     var imageDialogProfilePicture by mutableStateOf("")
-    var uploadingImage by mutableStateOf<Uri?>(null)
+    var uploadingMedia by mutableStateOf<Uri?>(null)
     var swapChatColors by mutableStateOf(false)
     var isLoadingUsers = false
     var isLoadingChat = false
@@ -64,6 +63,7 @@ class FirebaseViewModel: ViewModel() {
     var searchText by mutableStateOf("")
     var searchIndex by mutableStateOf<Int?>(null)
     var searchListIndex by mutableStateOf<Int?>(null)
+    var isUploadingVideo by mutableStateOf(false)
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -270,10 +270,10 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false, storyReply: Boolean? = false) {
+    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false, storyReply: Boolean? = false, isVideo: Boolean? = false) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded, storyReply = storyReply)
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded, storyReply = storyReply, isVideo = isVideo)
             firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
@@ -282,8 +282,8 @@ class FirebaseViewModel: ViewModel() {
                 .collection(userData?.userId.toString())
                 .add(messageData)
                 .await()
-            uploadingImage = null
-
+            uploadingMedia = null
+            isUploadingVideo = false
             val latestMessageSenderRef = firebase.collection("latest_messages").document(userData?.userId.toString() + "_" + otherUserId)
             latestMessageSenderRef.set(messageData)
 
@@ -291,7 +291,7 @@ class FirebaseViewModel: ViewModel() {
             latestMessageRecipientRef.set(messageData)
 
             if (imageUrl != null && message.isEmpty()) {
-                sendNotif("Image")
+                sendNotif("Media")
             } else {
                 sendNotif(message)
             }
@@ -299,23 +299,24 @@ class FirebaseViewModel: ViewModel() {
     }
 
 
-    fun uploadImageAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?) {
+    fun uploadMediaAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?, video: Boolean = isUploadingVideo) {
         viewModelScope.launch{
+            val isVideo = isUploadingVideo
             if(forwarded!=null){
                 if(forwarded?.image!=null){
-                    sendMessage(otherUserId, imageUrl = forwarded?.image, message = message, forwarded = forwarded?.isForwarded)
+                    sendMessage(otherUserId, imageUrl = forwarded?.image, message = message, forwarded = forwarded?.isForwarded, isVideo = isVideo)
                 }else{
                     sendMessage(otherUserId, message = message, repliedTo = repliedTo, forwarded = forwarded?.isForwarded)
                 }
                 forwarded = null
-            }else if (imageUri != null) {
-                uploadingImage = imageUri
+            }else if (mediaUri != null) {
+                uploadingMedia = mediaUri
                 val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
-                val uploadTask = storageRef.putFile(imageUri!!)
+                val uploadTask = storageRef.putFile(mediaUri!!)
                 uploadTask.addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { uri ->
                         val imageUrl = uri.toString()
-                        sendMessage(otherUserId, imageUrl = imageUrl, message = message)
+                        sendMessage(otherUserId, imageUrl = imageUrl, message = message, isVideo = isVideo)
                     }
                 }
             } else {
@@ -563,6 +564,7 @@ class FirebaseViewModel: ViewModel() {
 
     fun editMessage(otherUserId: String, messageTimestamp: Long, newMessage: String, reaction :String ? = null, starred: Boolean? = false) {
         viewModelScope.launch(Dispatchers.IO) {
+            isUploadingVideo = false
             val currentUserRef = firebase.collection("conversations")
                 .document(userData?.userId.toString())
                 .collection(otherUserId)
@@ -616,7 +618,7 @@ class FirebaseViewModel: ViewModel() {
 
     fun updateProfilePic() {
         viewModelScope.launch{
-            if (imageUri != null && userData?.userId!!.isNotEmpty()) {
+            if (mediaUri != null && userData?.userId!!.isNotEmpty()) {
                 val storageRef = Firebase.storage.reference.child("profilePics/${userData?.userId}/${UUID.randomUUID()}")
                 val allProfilePics = Firebase.storage.reference.child("profilePics/${userData?.userId}")
                 allProfilePics.listAll()
@@ -625,7 +627,7 @@ class FirebaseViewModel: ViewModel() {
                             item.delete()
                         }
                     }
-                val uploadTask = storageRef.putFile(imageUri!!)
+                val uploadTask = storageRef.putFile(mediaUri!!)
                 uploadTask.continueWithTask { task ->
                     if (!task.isSuccessful) {
                         task.exception?.let {
@@ -642,14 +644,14 @@ class FirebaseViewModel: ViewModel() {
                     }
                 }
             }
-            imageUri = null
+            mediaUri = null
         }
 
     }
 
     fun setStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (imageUri != null && userData?.userId!!.isNotEmpty()) {
+            if (mediaUri != null && userData?.userId!!.isNotEmpty()) {
                 val storageRef = Firebase.storage.reference.child("status/${userData?.userId}/${UUID.randomUUID()}")
                 val allStatus = Firebase.storage.reference.child("status/${userData?.userId}")
                 allStatus.listAll()
@@ -658,7 +660,7 @@ class FirebaseViewModel: ViewModel() {
                             item.delete()
                         }
                     }
-                val uploadTask = storageRef.putFile(imageUri!!)
+                val uploadTask = storageRef.putFile(mediaUri!!)
                 uploadTask.continueWithTask { task ->
                     if (!task.isSuccessful) {
                         task.exception?.let {
@@ -680,7 +682,7 @@ class FirebaseViewModel: ViewModel() {
                     }
                 }
             }
-            imageUri = null
+            mediaUri = null
         }
     }
 

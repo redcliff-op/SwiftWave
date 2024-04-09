@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
@@ -47,7 +46,7 @@ fun statusScreen(
 ){
     firebaseViewModel.loadChatListUsers()
     val userList = firebaseViewModel.usersWithStatus.collectAsState(initial = emptyList())
-    if(firebaseViewModel.imageUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
+    if(firebaseViewModel.mediaUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
         SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
             taskViewModel = taskViewModel
@@ -55,7 +54,7 @@ fun statusScreen(
     }
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = {uri -> firebaseViewModel.imageUri = uri}
+        onResult = {uri -> firebaseViewModel.mediaUri = uri}
     )
     if(taskViewModel.showImageDialog){
         ImageDialog(

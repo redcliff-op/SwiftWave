@@ -1,8 +1,10 @@
 package com.example.swiftwave.ui.components
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -58,15 +60,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
+import io.sanghun.compose.video.RepeatMode
+import io.sanghun.compose.video.VideoPlayer
+import io.sanghun.compose.video.controller.VideoPlayerControllerConfig
+import io.sanghun.compose.video.uri.VideoPlayerMediaItem
 
 @Composable
 fun CustomDialog(
@@ -198,7 +202,7 @@ fun ImageDialog(
             taskViewModel.showImageDialog = false
             taskViewModel.showDeleteStatusOption = false
             firebaseViewModel.sentBy = ""
-            firebaseViewModel.imageViewText = ""
+            firebaseViewModel.mediaViewText = ""
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
@@ -226,7 +230,7 @@ fun ImageDialog(
                         taskViewModel.showImageDialog = false
                         taskViewModel.showDeleteStatusOption = false
                         firebaseViewModel.sentBy = ""
-                        firebaseViewModel.imageViewText = ""
+                        firebaseViewModel.mediaViewText = ""
                     }
                 ){
                     Icon(
@@ -296,7 +300,7 @@ fun ImageDialog(
             Column (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = if (firebaseViewModel.imageViewText.isNotBlank()) 10.dp else 30.dp),
+                    .padding(bottom = if (firebaseViewModel.mediaViewText.isNotBlank()) 10.dp else 30.dp),
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
@@ -346,7 +350,7 @@ fun ImageDialog(
                         }
                     )
                 }
-                AnimatedVisibility(visible = firebaseViewModel.imageViewText.isNotBlank() && scale == 1f){
+                AnimatedVisibility(visible = firebaseViewModel.mediaViewText.isNotBlank() && scale == 1f){
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -354,7 +358,7 @@ fun ImageDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ){
                         Text(
-                            text = firebaseViewModel.imageViewText,
+                            text = firebaseViewModel.mediaViewText,
                             fontSize = 25.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -474,7 +478,7 @@ fun SetProfilePictureAndStatusDialog(
         onDismissRequest = {
             taskViewModel.showSetProfilePictureAndStatusDialog = false
             taskViewModel.isUploadingStatus = false
-            firebaseViewModel.imageUri = null
+            firebaseViewModel.mediaUri = null
         },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
@@ -507,7 +511,7 @@ fun SetProfilePictureAndStatusDialog(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 AsyncImage(
-                    model = firebaseViewModel.imageUri,
+                    model = firebaseViewModel.mediaUri,
                     contentDescription = null,
                     modifier = Modifier.weight(1f)
                 )
@@ -515,7 +519,7 @@ fun SetProfilePictureAndStatusDialog(
                 Row {
                     ElevatedButton(onClick = {
                         taskViewModel.showSetProfilePictureAndStatusDialog = false
-                        firebaseViewModel.imageUri = null
+                        firebaseViewModel.mediaUri = null
                         taskViewModel.isUploadingStatus = false
                     }) {
                         Text(
@@ -530,7 +534,7 @@ fun SetProfilePictureAndStatusDialog(
                             firebaseViewModel.setStatus()
                         }else{
                             firebaseViewModel.updateProfilePic()
-                            firebaseViewModel.imageUri = null
+                            firebaseViewModel.mediaUri = null
                         }
                         Toast.makeText(
                             ctx,
@@ -665,6 +669,65 @@ fun EmojiDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun VideoDialog(
+    firebaseViewModel: FirebaseViewModel,
+    taskViewModel: TaskViewModel
+) {
+    BackHandler {
+        taskViewModel.showVideoDialog = false
+    }
+    Dialog(
+        onDismissRequest = {
+            taskViewModel.showVideoDialog = false
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.Black),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Black
+            )
+        ){
+            VideoPlayer(
+                mediaItems = listOf(
+                    VideoPlayerMediaItem.NetworkMediaItem(
+                        url = firebaseViewModel.videoString,
+                    )
+                ),
+                handleLifecycle = true,
+                autoPlay = true,
+                usePlayerController = true,
+                enablePip = true,
+                handleAudioFocus = true,
+                controllerConfig = VideoPlayerControllerConfig(
+                    showSpeedAndPitchOverlay = true,
+                    showSubtitleButton = false,
+                    showCurrentTimeAndTotalTime = true,
+                    showBufferingProgress = true,
+                    showForwardIncrementButton = true,
+                    showBackwardIncrementButton = true,
+                    showBackTrackButton = true,
+                    showNextTrackButton = true,
+                    showRepeatModeButton = true,
+                    controllerShowTimeMilliSeconds = 5_000,
+                    controllerAutoShow = true,
+                    showFullScreenButton = false
+                ),
+                volume = 0.5f,
+                repeatMode = RepeatMode.NONE,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.CenterHorizontally),
+            )
         }
     }
 }
