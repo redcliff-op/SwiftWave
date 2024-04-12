@@ -628,6 +628,9 @@ fun personChatScreen(
                 Box (
                    modifier = Modifier.weight(1f)
                 ){
+                    val sortedList = remember(chatList.value) {
+                        chatList.value.sortedBy { it.time }.reversed()
+                    }
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -636,7 +639,7 @@ fun personChatScreen(
                         state = listState
                     ) {
                         itemsIndexed(
-                            items = chatList.value.sortedBy { it.time }.reversed(),
+                            items = sortedList,
                             key = { index, item ->
                                 "${item.time}"
                             }

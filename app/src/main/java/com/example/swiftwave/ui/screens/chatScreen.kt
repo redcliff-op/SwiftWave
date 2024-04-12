@@ -51,6 +51,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -143,13 +144,16 @@ fun chatScreen(
             )
         )
         AnimatedVisibility(visible = statusList.value.isNotEmpty()) {
+            val statusListItems = remember(statusList.value){
+                statusList.value
+            }
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth(0.9f),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.Top
             ) {
-                items(statusList.value){ UserData ->
+                items(statusListItems){ UserData ->
                     StoryCard(
                         userData = UserData,
                         taskViewModel = taskViewModel,
@@ -171,18 +175,20 @@ fun chatScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+        val items = remember(chatListUsers.value, filteredUsers.value){
+            if(filteredUsers.value.isEmpty()){
+                chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }
+            }else{
+                filteredUsers.value
+            }
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 70.dp)
         ){
             items(
-                items =
-                if(filteredUsers.value.isEmpty()){
-                    chatListUsers.value.filter { userData -> !blockedUsers.value.any { it.userId == userData.userId } }.sortedByDescending { it.latestMessage?.time }
-                }else{
-                    filteredUsers.value
-                },
+                items = items,
                 key = {it.userId.toString()}
             ){userData ->
                 val dismissState = rememberSwipeToDismissBoxState(
