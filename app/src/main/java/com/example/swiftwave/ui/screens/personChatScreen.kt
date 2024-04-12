@@ -1,6 +1,5 @@
 package com.example.swiftwave.ui.screens
 
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -91,14 +90,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.request.ImageRequest
-import coil.size.Size
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.canhub.cropper.CropImage.CancelledResult.uriContent
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -158,17 +155,6 @@ fun personChatScreen(
     val ctx = LocalContext.current
     val corLaunch = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val imageLoader = remember {
-        ImageLoader.Builder(ctx)
-            .components {
-                if (Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
-            }
-            .build()
-    }
     DisposableEffect(Unit){
         taskViewModel.showNavBar = false
         taskViewModel.isStatus = false
@@ -757,15 +743,11 @@ fun personChatScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ){
-                        Image(
-                            painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(ctx).data(data = R.drawable.typing).apply(block = {
-                                    size(Size.ORIGINAL)
-                                }).build(), imageLoader = imageLoader
-                            ),
-                            modifier = Modifier.size(80.dp),
-                            contentScale = ContentScale.Crop,
-                            contentDescription = null,
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.typinganimation))
+                        LottieAnimation(
+                            composition = composition,
+                            iterations = LottieConstants.IterateForever,
+                            modifier = Modifier.size(60.dp)
                         )
                         Spacer(modifier = Modifier.size(10.dp))
                         Text(text = "Typing...", fontWeight = FontWeight.Bold)
@@ -823,15 +805,11 @@ fun personChatScreen(
                                         contentScale = ContentScale.Crop
                                     )
                                 }
-                                Image(
-                                    painter = rememberAsyncImagePainter(
-                                        ImageRequest.Builder(ctx).data(data = R.drawable.uploading).apply(block = {
-                                            size(Size.ORIGINAL)
-                                        }).build(), imageLoader = imageLoader
-                                    ),
-                                    modifier = Modifier.size(150.dp),
-                                    contentScale = ContentScale.Crop,
-                                    contentDescription = null,
+                                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.uploadanimation))
+                                LottieAnimation(
+                                    composition = composition,
+                                    iterations = LottieConstants.IterateForever,
+                                    modifier = Modifier.size(150.dp)
                                 )
                             }
                         }
