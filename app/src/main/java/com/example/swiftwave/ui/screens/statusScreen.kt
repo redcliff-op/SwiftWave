@@ -1,8 +1,6 @@
 package com.example.swiftwave.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,11 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.canhub.cropper.CropImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.SetProfilePictureAndStatusDialog
 import com.example.swiftwave.ui.components.StatusCard
@@ -52,9 +55,27 @@ fun statusScreen(
             taskViewModel = taskViewModel
         )
     }
-    val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = {uri -> firebaseViewModel.mediaUri = uri}
+    val imagePicker = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            firebaseViewModel.mediaUri = result.uriContent
+        }
+    }
+    val cropOption = CropImageContractOptions(
+        CropImage.CancelledResult.uriContent, CropImageOptions(
+            progressBarColor = MaterialTheme.colorScheme.primary.toArgb(),
+            activityBackgroundColor = MaterialTheme.colorScheme.surface.toArgb(),
+            borderLineColor = Color.White.toArgb(),
+            cropperLabelTextColor = MaterialTheme.colorScheme.primary.toArgb(),
+            activityMenuIconColor = MaterialTheme.colorScheme.primary.toArgb(),
+            guidelinesColor = Color.White.toArgb(),
+            toolbarColor = MaterialTheme.colorScheme.surface.toArgb(),
+            activityMenuTextColor = MaterialTheme.colorScheme.primary.toArgb(),
+            borderCornerColor = Color.White.toArgb(),
+            toolbarTintColor = Color.White.toArgb(),
+            toolbarTitleColor = MaterialTheme.colorScheme.primary.toArgb(),
+            toolbarBackButtonColor = MaterialTheme.colorScheme.primary.toArgb(),
+            autoZoomEnabled = true
+        )
     )
     if(taskViewModel.showImageDialog){
         ImageDialog(
@@ -88,9 +109,7 @@ fun statusScreen(
                 .fillMaxWidth(0.9f)
                 .clickable {
                     taskViewModel.isUploadingStatus = true
-                    imagePicker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    imagePicker.launch(cropOption)
                     taskViewModel.showSetProfilePictureAndStatusDialog = true
                 },
             verticalAlignment = Alignment.CenterVertically,

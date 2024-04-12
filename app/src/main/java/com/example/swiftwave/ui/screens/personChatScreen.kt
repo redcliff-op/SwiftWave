@@ -79,6 +79,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -98,6 +99,10 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.size.Size
+import com.canhub.cropper.CropImage.CancelledResult.uriContent
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.example.swiftwave.R
 import com.example.swiftwave.ui.components.DeleteMessageDialog
 import com.example.swiftwave.ui.components.EmojiDialog
@@ -124,7 +129,29 @@ fun personChatScreen(
     val chatList = firebaseViewModel.chatMessages.collectAsState()
     val userList by firebaseViewModel.chatListUsers.collectAsState()
     val searchMessageList by firebaseViewModel.searchMessages.collectAsState()
-    val imagePicker = rememberLauncherForActivityResult(
+    val imagePicker = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            firebaseViewModel.mediaUri = result.uriContent
+        }
+    }
+    val cropOption = CropImageContractOptions(
+        uriContent, CropImageOptions(
+            progressBarColor = MaterialTheme.colorScheme.primary.toArgb(),
+            activityBackgroundColor = MaterialTheme.colorScheme.surface.toArgb(),
+            borderLineColor = Color.White.toArgb(),
+            cropperLabelTextColor = MaterialTheme.colorScheme.primary.toArgb(),
+            activityMenuIconColor = MaterialTheme.colorScheme.primary.toArgb(),
+            guidelinesColor = Color.White.toArgb(),
+            toolbarColor = MaterialTheme.colorScheme.surface.toArgb(),
+            activityMenuTextColor = MaterialTheme.colorScheme.primary.toArgb(),
+            borderCornerColor = Color.White.toArgb(),
+            toolbarTintColor = Color.White.toArgb(),
+            toolbarTitleColor = MaterialTheme.colorScheme.primary.toArgb(),
+            toolbarBackButtonColor = MaterialTheme.colorScheme.primary.toArgb(),
+            autoZoomEnabled = true
+        )
+    )
+    val videoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {uri -> firebaseViewModel.mediaUri = uri}
     )
@@ -1047,9 +1074,7 @@ fun personChatScreen(
                                         modifier = Modifier
                                             .size(35.dp)
                                             .clickable {
-                                                imagePicker.launch(
-                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                                )
+                                                imagePicker.launch(cropOption)
                                                 firebaseViewModel.isUploadingVideo = false
                                                 taskViewModel.selectImageOrVideo = false
                                             },
@@ -1070,7 +1095,7 @@ fun personChatScreen(
                                         modifier = Modifier
                                             .size(35.dp)
                                             .clickable {
-                                                imagePicker.launch(
+                                                videoPicker.launch(
                                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
                                                 )
                                                 firebaseViewModel.isUploadingVideo = true
