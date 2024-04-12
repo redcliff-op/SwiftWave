@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.swiftwave.auth.UserData
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.data.model.StoryViewers
+import com.example.swiftwave.data.model.UploadStatus
 import com.example.swiftwave.data.model.UserPref
 import com.example.swiftwave.data.remote.callNotifAPI
 import com.google.firebase.Firebase
@@ -87,6 +88,8 @@ class FirebaseViewModel: ViewModel() {
     val searchMessages : StateFlow<List<MessageData>> = _searchMessages
     private val _repliedToIndex = MutableStateFlow<Int?>(null)
     val repliedToIndex : StateFlow<Int?> = _repliedToIndex
+    private val _uploadStatus = MutableStateFlow<UploadStatus?>(null)
+    val uploadStatus : StateFlow<UploadStatus?> = _uploadStatus
     val listeners = mutableListOf<ListenerRegistration>()
 
     fun loadChatListUsers() {
@@ -298,21 +301,27 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-
     fun uploadMediaAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?, video: Boolean = isUploadingVideo) {
-        viewModelScope.launch{
+        viewModelScope.launch {
+            _uploadStatus.value = UploadStatus()
             val isVideo = isUploadingVideo
-            if(forwarded!=null){
-                if(forwarded?.image!=null){
+            if (forwarded != null) {
+                if (forwarded?.image != null) {
                     sendMessage(otherUserId, imageUrl = forwarded?.image, message = message, forwarded = forwarded?.isForwarded, isVideo = isVideo)
-                }else{
+                } else {
                     sendMessage(otherUserId, message = message, repliedTo = repliedTo, forwarded = forwarded?.isForwarded)
                 }
                 forwarded = null
-            }else if (mediaUri != null) {
+            } else if (mediaUri != null) {
                 uploadingMedia = mediaUri
                 val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
                 val uploadTask = storageRef.putFile(mediaUri!!)
+                uploadTask.addOnProgressListener { taskSnapshot ->
+                    val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toFloat()
+                    val megabytesTransferred = String.format("%.1f", taskSnapshot.bytesTransferred.toDouble() / 1048576)
+                    val megabytesTotal = String.format("%.1f", taskSnapshot.totalByteCount.toDouble() / 1048576)
+                    _uploadStatus.value = UploadStatus(progress / 100, megabytesTransferred, megabytesTotal)
+                }
                 uploadTask.addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { uri ->
                         val imageUrl = uri.toString()

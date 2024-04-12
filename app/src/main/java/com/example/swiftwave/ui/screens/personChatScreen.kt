@@ -1,8 +1,10 @@
 package com.example.swiftwave.ui.screens
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -88,14 +91,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.BlendModeColorFilterCompat
+import androidx.core.graphics.BlendModeCompat
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.rememberLottieDynamicProperties
+import com.airbnb.lottie.compose.rememberLottieDynamicProperty
 import com.canhub.cropper.CropImage.CancelledResult.uriContent
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -115,6 +123,7 @@ import io.sanghun.compose.video.uri.VideoPlayerMediaItem
 import kotlinx.coroutines.launch
 
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun personChatScreen(
@@ -785,11 +794,12 @@ fun personChatScreen(
                                         volume = 0.5f,
                                         repeatMode = RepeatMode.NONE,
                                         modifier = Modifier
-                                            .size(300.dp)
+                                            .size(280.dp)
                                             .padding(
                                                 start = 3.dp,
                                                 end = 3.dp,
-                                                top = 3.dp
+                                                top = 3.dp,
+                                                bottom = 3.dp
                                             )
                                             .clip(RoundedCornerShape(10.dp))
                                             .align(Alignment.Center),
@@ -800,17 +810,64 @@ fun personChatScreen(
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(280.dp)
-                                            .padding(7.dp)
+                                            .padding(3.dp)
                                             .blur(10.dp),
                                         contentScale = ContentScale.Crop
                                     )
                                 }
-                                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.uploadanimation))
-                                LottieAnimation(
-                                    composition = composition,
-                                    iterations = LottieConstants.IterateForever,
-                                    modifier = Modifier.size(150.dp)
-                                )
+                                Box(
+                                    modifier = Modifier.size(280.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val status = firebaseViewModel.uploadStatus.collectAsState()
+                                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.uploadanimation))
+                                    val dynamicProperties = rememberLottieDynamicProperties(
+                                        rememberLottieDynamicProperty(
+                                            property = LottieProperty.COLOR_FILTER,
+                                            value = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(
+                                                MaterialTheme.colorScheme.primary.hashCode(),
+                                                BlendModeCompat.COLOR
+                                            ),
+                                            keyPath = arrayOf(
+                                                "**"
+                                            )
+                                        )
+                                    )
+                                    LottieAnimation(
+                                        composition = composition,
+                                        iterations = LottieConstants.IterateForever,
+                                        modifier = Modifier.size(150.dp),
+                                        dynamicProperties = dynamicProperties
+                                    )
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.BottomStart
+                                    ){
+                                        Card(
+                                            modifier = Modifier.padding(10.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = status.value?.MegabytesTransferred!! + "/" + status.value?.totalMegaBytes!! + "MB",
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(start = 5.dp),
+                                                    color = Color.White,
+                                                    fontSize = 13.sp
+                                                )
+                                                CircularProgressIndicator(
+                                                    progress = { status.value?.progress!! },
+                                                    modifier = Modifier
+                                                        .size(25.dp)
+                                                        .padding(5.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = Color.White
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
