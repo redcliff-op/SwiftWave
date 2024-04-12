@@ -278,7 +278,8 @@ class MainActivity : ComponentActivity() {
                             composable(route = "ChatSettings"){
                                 chatSettings(
                                     firebaseViewModel = firebaseViewModel,
-                                    taskViewModel = taskViewModel
+                                    taskViewModel = taskViewModel,
+                                    navController = navController
                                 )
                             }
                             composable(route = "ForwardScreen"){

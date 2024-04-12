@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,6 +33,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,10 +47,12 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.components.demoChatCard
@@ -59,8 +63,16 @@ import com.example.swiftwave.ui.viewmodels.TaskViewModel
 @Composable
 fun chatSettings(
     firebaseViewModel: FirebaseViewModel,
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    navController: NavController
 ) {
+    DisposableEffect(Unit) {
+        taskViewModel.showNavBar = false
+        onDispose {
+            taskViewModel.showNavBar = true
+        }
+    }
+    val ctx = LocalContext.current
     var fontSize by remember {
         mutableIntStateOf(firebaseViewModel.userData?.userPref?.fontSize!!)
     }
@@ -95,8 +107,7 @@ fun chatSettings(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(bottom = 80.dp),
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -344,7 +355,15 @@ fun chatSettings(
                     }
                 }
                 ElevatedButton(
-                    onClick = {firebaseViewModel.updateChatPreferences()},
+                    onClick = {
+                        firebaseViewModel.updateChatPreferences()
+                        Toast.makeText(
+                            ctx,
+                            "Preferences Saved",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.navigateUp()
+                    },
                     modifier = Modifier.padding(vertical = 10.dp)
                 ) {
                     Text(
