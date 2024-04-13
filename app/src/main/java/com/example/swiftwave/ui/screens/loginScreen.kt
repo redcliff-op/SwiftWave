@@ -77,7 +77,8 @@ fun loginScreen(
             val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loginanimation))
             LottieAnimation(
                 composition = composition,
-                iterations = LottieConstants.IterateForever
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier.fillMaxWidth(0.9f)
             )
             Column(
                 modifier = Modifier.fillMaxWidth(),
