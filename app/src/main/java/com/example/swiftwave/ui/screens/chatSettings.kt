@@ -4,14 +4,11 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.ScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.components.demoChatCard
 import com.example.swiftwave.ui.components.doodleBackgroundList
@@ -80,7 +76,7 @@ fun chatSettings(
         mutableIntStateOf(firebaseViewModel.userData?.userPref?.roundedCornerRadius!!)
     }
     var fontSizeSlider by remember {
-        mutableFloatStateOf((fontSize - 14) / (20 - 14).toFloat())
+        mutableFloatStateOf((fontSize - 12) / (20 - 12).toFloat())
     }
     var roundedCornerSlider by remember {
         mutableFloatStateOf((roundedCornerRadius - 10) / (30 - 10).toFloat())
@@ -155,8 +151,8 @@ fun chatSettings(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceAround
                     ) {
-                        Spacer(modifier = Modifier.size(10.dp))
                         demoChatCard(
+                            index = 0,
                             messageData = MessageData(
                                 "Hi There, ${firebaseViewModel.userData?.username} here",
                                 "loremipsum",
@@ -167,12 +163,18 @@ fun chatSettings(
                             fontSize = fontSize,
                             roundedCornerRadius = roundedCornerRadius
                         )
-                        Spacer(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.size(10.dp))
                         demoChatCard(
+                            index = 1,
                             messageData = MessageData(
                                 "Welcome to SwiftWave My Friend!",
                                 firebaseViewModel.userData?.userId,
-                                1711219956624
+                                1711219956624,
+                                repliedTo = MessageData(
+                                    message = "Hi There, ${firebaseViewModel.userData?.username} here",
+                                    time = 1711219956624,
+                                    senderID = "loremipsum"
+                                )
                             ),
                             taskViewModel =  taskViewModel,
                             firebaseViewModel = firebaseViewModel,
@@ -204,12 +206,12 @@ fun chatSettings(
                 Slider(
                     value = fontSizeSlider,
                     onValueChange = {
-                        fontSize = (14 + (6 * it)).toInt()
+                        fontSize = (12 + (8 * it)).toInt()
                         fontSizeSlider = it
                         firebaseViewModel.userData?.userPref?.fontSize = fontSize
                     },
                     valueRange = 0f..1f,
-                    steps = 5,
+                    steps = 7,
                     modifier = Modifier.fillMaxWidth(0.93f)
                 )
                 Row (
