@@ -35,6 +35,7 @@ class TaskViewModel : ViewModel(){
     var showStoryViewers by mutableStateOf(false)
     var searchMessages by mutableStateOf(false)
     var selectImageOrVideo by mutableStateOf(false)
+    var expandUploadQualitySetting by mutableStateOf(false)
 
     fun getTime(mills: Long): String {
         val calendar = Calendar.getInstance()

@@ -1,6 +1,7 @@
 package com.example.swiftwave.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,17 +13,22 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +64,12 @@ fun accountScreen(
     var readRecipients by remember {
         mutableStateOf(firebaseViewModel.userData?.userPref?.readRecipients)
     }
+    var quality by remember {
+        mutableIntStateOf(firebaseViewModel.userData?.userPref?.uploadQuality!!)
+    }
+    var qualitySlider by remember {
+        mutableFloatStateOf((quality-10)/(100-10).toFloat())
+    }
     if(firebaseViewModel.mediaUri!=null && taskViewModel.showSetProfilePictureAndStatusDialog){
         SetProfilePictureAndStatusDialog(
             firebaseViewModel = firebaseViewModel,
@@ -86,7 +98,8 @@ fun accountScreen(
             aspectRatioX = 1,
             aspectRatioY = 1,
             fixAspectRatio = true,
-            autoZoomEnabled = true
+            autoZoomEnabled = true,
+            outputCompressQuality = 30
         )
     )
     Column(
@@ -94,7 +107,12 @@ fun accountScreen(
             .fillMaxSize()
             .navigationBarsPadding()
             .statusBarsPadding()
-            .padding(horizontal = 20.dp),
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                bottom = 80.dp
+            )
+            .verticalScroll(reverseScrolling = true, state = rememberScrollState()),
         verticalArrangement = Arrangement.Top
     ){
         Text(
@@ -272,6 +290,92 @@ fun accountScreen(
                     contentDescription = null,
                     modifier = Modifier.size(30.dp)
                 )
+            }
+        }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent
+            ),
+            onClick = {
+                taskViewModel.expandUploadQualitySetting = !taskViewModel.expandUploadQualitySetting
+            }
+        ) {
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Upload Quality",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Adjust Image and Status Quality",
+                        fontSize = 15.sp,
+                        color = Color.Gray
+                    )
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.hdicon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            AnimatedVisibility(visible = taskViewModel.expandUploadQualitySetting) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Uses Efficient Bitmap Compression, ie Image size decreases drastically for very little drop in Image Quality",
+                        fontSize = 15.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text(
+                                text = "Quality",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            AnimatedVisibility(quality == 90){
+                                Text(
+                                    text = "(Recommended)",
+                                    modifier = Modifier.padding(horizontal = 5.dp)
+                                )
+                            }
+                        }
+                        Text(text = "$quality%")
+                    }
+                    Slider(
+                        value = qualitySlider,
+                        onValueChange = {
+                            quality = (10 + (90 * it)).toInt()
+                            qualitySlider = it
+                            firebaseViewModel.userData?.userPref?.uploadQuality = quality
+                            firebaseViewModel.updateChatPreferences()
+                        },
+                        steps = 8,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                }
             }
         }
         Row (

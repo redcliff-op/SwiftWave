@@ -11,4 +11,5 @@ data class UserPref(
     var swapChatColors: Boolean ? = false,
     var background:Int ? = R.drawable.i0,
     var readRecipients: Boolean? = true,
+    var uploadQuality: Int? = 90
 )

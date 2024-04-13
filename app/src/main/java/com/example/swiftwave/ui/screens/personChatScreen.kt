@@ -1,5 +1,6 @@
 package com.example.swiftwave.ui.screens
 
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -156,7 +157,8 @@ fun personChatScreen(
             toolbarTintColor = Color.White.toArgb(),
             toolbarTitleColor = MaterialTheme.colorScheme.primary.toArgb(),
             toolbarBackButtonColor = MaterialTheme.colorScheme.primary.toArgb(),
-            autoZoomEnabled = true
+            autoZoomEnabled = true,
+            outputCompressQuality = firebaseViewModel.userData?.userPref?.uploadQuality!!
         )
     )
     val videoPicker = rememberLauncherForActivityResult(
