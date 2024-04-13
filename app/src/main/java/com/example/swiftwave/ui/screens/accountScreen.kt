@@ -99,7 +99,8 @@ fun accountScreen(
             aspectRatioY = 1,
             fixAspectRatio = true,
             autoZoomEnabled = true,
-            outputCompressQuality = 30
+            outputCompressQuality = 30,
+            showIntentChooser = true
         )
     )
     Column(

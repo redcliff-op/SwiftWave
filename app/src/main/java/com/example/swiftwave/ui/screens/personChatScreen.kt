@@ -159,7 +159,8 @@ fun personChatScreen(
             toolbarTitleColor = MaterialTheme.colorScheme.primary.toArgb(),
             toolbarBackButtonColor = MaterialTheme.colorScheme.primary.toArgb(),
             autoZoomEnabled = true,
-            outputCompressQuality = firebaseViewModel.userData?.userPref?.uploadQuality!!
+            outputCompressQuality = firebaseViewModel.userData?.userPref?.uploadQuality!!,
+            showIntentChooser = true
         )
     )
     val videoPicker = rememberLauncherForActivityResult(

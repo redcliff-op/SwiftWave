@@ -75,7 +75,8 @@ fun statusScreen(
             toolbarTitleColor = MaterialTheme.colorScheme.primary.toArgb(),
             toolbarBackButtonColor = MaterialTheme.colorScheme.primary.toArgb(),
             autoZoomEnabled = true,
-            outputCompressQuality = firebaseViewModel.userData?.userPref?.uploadQuality!!
+            outputCompressQuality = firebaseViewModel.userData?.userPref?.uploadQuality!!,
+            showIntentChooser = true
         )
     )
     if(taskViewModel.showImageDialog){
