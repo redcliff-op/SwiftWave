@@ -632,7 +632,6 @@ fun chatCard(
                                         end = 15.dp
                                     ),
                                 fontSize = fontSize.sp,
-                                fontWeight = FontWeight.SemiBold,
                                 color = Color.White,
                             )
                         }

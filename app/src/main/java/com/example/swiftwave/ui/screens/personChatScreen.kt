@@ -143,6 +143,7 @@ fun personChatScreen(
             firebaseViewModel.mediaUri = result.uriContent
         }
     }
+    val fontSize = firebaseViewModel.userData?.userPref?.fontSize
     val cropOption = CropImageContractOptions(
         uriContent, CropImageOptions(
             progressBarColor = MaterialTheme.colorScheme.primary.toArgb(),
@@ -223,7 +224,7 @@ fun personChatScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = Color.Black
             ),
             shape = RectangleShape,
             onClick = {
@@ -237,19 +238,15 @@ fun personChatScreen(
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .padding(
-                        top = 10.dp,
-                        bottom = 20.dp,
+                        top = 5.dp,
+                        bottom = 10.dp,
                         start = 10.dp,
                         end = 10.dp
                     ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
-                AnimatedVisibility(
-                    visible = taskViewModel.searchMessages,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
+                if(taskViewModel.searchMessages) {
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
@@ -363,71 +360,73 @@ fun personChatScreen(
                         }
                     }
                 }
-                IconButton(
-                    onClick = {
-                        navController.navigateUp()
-                    }
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.backicon),
-                        contentDescription = null,
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-                Row (
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    AsyncImage(
-                        model = firebaseViewModel.chattingWith?.profilePictureUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(shape = CircleShape)
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = firebaseViewModel.chattingWith?.username.toString(),
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                else{
+                    IconButton(
+                        onClick = {
+                            navController.navigateUp()
+                        }
+                    ){
+                        Icon(
+                            painter = painterResource(id = R.drawable.backicon),
+                            contentDescription = null,
+                            modifier = Modifier.size(25.dp)
                         )
-                        AnimatedVisibility(visible = userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.online==true) {
+                    }
+                    Row (
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        AsyncImage(
+                            model = firebaseViewModel.chattingWith?.profilePictureUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(shape = CircleShape)
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text(
-                                text = "Online",
-                                fontSize = 13.sp
+                                text = firebaseViewModel.chattingWith?.username.toString(),
+                                fontSize = (fontSize!!+6).sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
+                            AnimatedVisibility(visible = userList.first { it.userId == firebaseViewModel.chattingWith?.userId }.online==true) {
+                                Text(
+                                    text = "Online",
+                                    fontSize = (fontSize -2).sp
+                                )
+                            }
                         }
                     }
-                }
-                IconButton(onClick = {
-                    taskViewModel.searchMessages = !taskViewModel.searchMessages
-                }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-                IconButton(onClick = {
-                    if(!taskViewModel.searchMessages){
-                        taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                    IconButton(onClick = {
+                        taskViewModel.searchMessages = !taskViewModel.searchMessages
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(25.dp)
+                        )
                     }
-                }) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = null,
-                        modifier = Modifier.size(25.dp)
-                    )
+                    IconButton(onClick = {
+                        if(!taskViewModel.searchMessages){
+                            taskViewModel.expandedPersonInfo = !taskViewModel.expandedPersonInfo
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreVert,
+                            contentDescription = null,
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
                 }
             }
             AnimatedVisibility(
@@ -441,33 +440,32 @@ fun personChatScreen(
                 ) {
                     Text(
                         text = "Details",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        fontSize = (fontSize!!+6).sp,
+                        color = Color.White
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
                         text = firebaseViewModel.chattingWith?.mail.toString(),
-                        fontSize = 17.sp,
+                        fontSize = (fontSize+3).sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Mail",
-                        fontSize = 15.sp,
+                        fontSize = fontSize.sp,
                         color = Color.Gray
                     )
                     if(firebaseViewModel.chattingWith?.bio!!.isNotEmpty()){
                         Spacer(modifier = Modifier.size(5.dp))
                         Text(
                             text = firebaseViewModel.chattingWith?.bio.toString(),
-                            fontSize = 17.sp,
+                            fontSize = 15.sp,
                             maxLines = 5,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Bio",
-                            fontSize = 15.sp,
+                            fontSize = fontSize.sp,
                             color = Color.Gray
                         )
                     }
@@ -1166,8 +1164,8 @@ fun personChatScreen(
                                     .weight(1f),
                                 maxLines = 4,
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = Color.Black,
+                                    focusedContainerColor = Color.Black,
                                     unfocusedBorderColor = Color.Transparent,
                                 ),
                                 trailingIcon = {
