@@ -42,15 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
-import io.sanghun.compose.video.RepeatMode
-import io.sanghun.compose.video.VideoPlayer
-import io.sanghun.compose.video.uri.VideoPlayerMediaItem
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun chatCard(
     messageData: MessageData,
@@ -500,35 +499,15 @@ fun chatCard(
                         if(messageData.image!=null){
                             if(messageData.isVideo==true){
                                 Box(
-                                    modifier = Modifier.size(300.dp),
+                                    modifier = Modifier.size(280.dp).padding(3.dp),
                                     contentAlignment = Alignment.Center
                                 ){
-                                    VideoPlayer(
-                                        mediaItems = listOf(
-                                            VideoPlayerMediaItem.NetworkMediaItem(
-                                                url = messageData.image,
-                                            )
-                                        ),
-                                        handleLifecycle = false,
-                                        autoPlay = false,
-                                        usePlayerController = false,
-                                        enablePip = false,
-                                        handleAudioFocus = true,
-                                        volume = 0.5f,
-                                        repeatMode = RepeatMode.NONE,
+                                    GlideImage(
+                                        model = messageData.image,
+                                        contentDescription = null,
                                         modifier = Modifier
-                                            .size(300.dp)
-                                            .padding(
-                                                start = 3.dp,
-                                                end = 3.dp,
-                                                top = 3.dp
-                                            )
+                                            .size(280.dp)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .align(Alignment.Center),
-                                    )
-                                    Row(
-                                        modifier = Modifier
-                                            .size(300.dp)
                                             .clickable {
                                                 firebaseViewModel.videoString = messageData.image
                                                 firebaseViewModel.mediaViewText =
@@ -545,6 +524,11 @@ fun chatCard(
                                                         firebaseViewModel.chattingWith?.profilePictureUrl.toString()
                                                 }
                                             },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .size(280.dp),
                                         horizontalArrangement = Arrangement.Center,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {

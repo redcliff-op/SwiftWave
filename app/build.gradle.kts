@@ -96,4 +96,5 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.3.0")
     implementation("com.vanniktech:android-image-cropper:4.5.0")
     implementation("com.airbnb.android:lottie-compose:6.4.0")
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 }

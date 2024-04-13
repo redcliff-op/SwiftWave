@@ -104,6 +104,8 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.airbnb.lottie.compose.rememberLottieDynamicProperties
 import com.airbnb.lottie.compose.rememberLottieDynamicProperty
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.canhub.cropper.CropImage.CancelledResult.uriContent
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -124,7 +126,7 @@ import kotlinx.coroutines.launch
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun personChatScreen(
     firebaseViewModel: FirebaseViewModel,
@@ -777,44 +779,18 @@ fun personChatScreen(
                             )
                         ){
                             Box(
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(3.dp)
                             ){
-                                if(firebaseViewModel.isUploadingVideo){
-                                    VideoPlayer(
-                                        mediaItems = listOf(
-                                            VideoPlayerMediaItem.NetworkMediaItem(
-                                                url = firebaseViewModel.uploadingMedia.toString(),
-                                            )
-                                        ),
-                                        handleLifecycle = false,
-                                        autoPlay = false,
-                                        usePlayerController = false,
-                                        enablePip = false,
-                                        handleAudioFocus = true,
-                                        volume = 0.5f,
-                                        repeatMode = RepeatMode.NONE,
-                                        modifier = Modifier
-                                            .size(280.dp)
-                                            .padding(
-                                                start = 3.dp,
-                                                end = 3.dp,
-                                                top = 3.dp,
-                                                bottom = 3.dp
-                                            )
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .align(Alignment.Center),
-                                    )
-                                }else{
-                                    AsyncImage(
-                                        model = firebaseViewModel.uploadingMedia,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(280.dp)
-                                            .padding(3.dp)
-                                            .blur(10.dp),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
+                                GlideImage(
+                                    model = firebaseViewModel.uploadingMedia,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(280.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .blur(10.dp),
+                                    contentScale = ContentScale.Crop
+                                )
                                 Box(
                                     modifier = Modifier.size(280.dp),
                                     contentAlignment = Alignment.Center
