@@ -351,10 +351,10 @@ fun chatCard(
                             Card(
                                 modifier = Modifier
                                     .padding(
-                                        top = 5.dp,
-                                        bottom = 5.dp,
-                                        start = 5.dp,
-                                        end = 5.dp
+                                        top = 3.dp,
+                                        bottom = 3.dp,
+                                        start = 3.dp,
+                                        end = 3.dp
                                     )
                                     .clickable {
                                         messageData.repliedTo?.time?.let {
@@ -383,7 +383,7 @@ fun chatCard(
                                 ) {
                                     Box {
                                         Text(
-                                            text = messageData.message.toString() + "  ",
+                                            text = messageData.message.toString() + "   ",
                                             fontSize = fontSize.sp,
                                             color =
                                                 if(messageData.senderID==firebaseViewModel.userData?.userId){

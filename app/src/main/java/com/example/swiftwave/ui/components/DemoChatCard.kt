@@ -116,19 +116,13 @@ fun demoChatCard(
                             Alignment.Start,
                     ){
                         if(messageData.repliedTo!=null){
-                            val user =
-                                if(messageData.repliedTo?.senderID==firebaseViewModel.userData?.userId)
-                                    "You"
-                                else{
-                                    firebaseViewModel.chattingWith?.username
-                                }
                             Card(
                                 modifier = Modifier
                                     .padding(
-                                        top = 5.dp,
-                                        bottom = 5.dp,
-                                        start = 5.dp,
-                                        end = 5.dp
+                                        top = 3.dp,
+                                        bottom = 3.dp,
+                                        start = 3.dp,
+                                        end = 3.dp
                                     ),
                                 shape = RoundedCornerShape(roundedCornerRadius.dp),
                                 colors = CardDefaults.cardColors(
@@ -152,7 +146,7 @@ fun demoChatCard(
                                 ) {
                                     Box {
                                         Text(
-                                            text = messageData.message.toString() + "  ",
+                                            text = messageData.message.toString() + "    ",
                                             fontSize = fontSize!!.sp,
                                             color =
                                             if(messageData.senderID==firebaseViewModel.userData?.userId){

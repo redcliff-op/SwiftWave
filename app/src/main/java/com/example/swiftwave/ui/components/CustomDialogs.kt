@@ -359,7 +359,7 @@ fun ImageDialog(
                     ){
                         Text(
                             text = firebaseViewModel.mediaViewText,
-                            fontSize = 25.sp,
+                            fontSize = firebaseViewModel.userData?.userPref?.fontSize!!.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .padding(15.dp)
@@ -573,7 +573,10 @@ fun EmojiDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
+                .fillMaxHeight(0.9f),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column(
                 modifier = Modifier
