@@ -1,6 +1,5 @@
 package com.example.swiftwave.ui.screens
 
-import android.graphics.Bitmap
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -8,8 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
@@ -97,7 +94,6 @@ import androidx.core.graphics.BlendModeCompat
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -117,6 +113,7 @@ import com.example.swiftwave.ui.components.EmojiDialog
 import com.example.swiftwave.ui.components.ImageDialog
 import com.example.swiftwave.ui.components.VideoDialog
 import com.example.swiftwave.ui.components.chatCard
+import com.example.swiftwave.ui.components.getFileNameFromUri
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
 import io.sanghun.compose.video.RepeatMode
@@ -167,6 +164,9 @@ fun personChatScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {uri -> firebaseViewModel.mediaUri = uri}
     )
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
+        firebaseViewModel.mediaUri = it
+    }
     val ctx = LocalContext.current
     val corLaunch = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -490,7 +490,6 @@ fun personChatScreen(
                             start = 10.dp,
                             end = 10.dp,
                             bottom = 10.dp,
-                            top = 5.dp
                         ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -544,7 +543,7 @@ fun personChatScreen(
                             IconButton(
                                 onClick = {
                                     firebaseViewModel.text = firebaseViewModel.selectedMessage?.message.toString()
-                                    firebaseViewModel.mediaUri = firebaseViewModel.selectedMessage?.image?.toUri()
+                                    firebaseViewModel.mediaUri = firebaseViewModel.selectedMessage?.media?.toUri()
                                     taskViewModel.isEditing = true
                                 }
                             ){
@@ -766,6 +765,20 @@ fun personChatScreen(
                     }
                 }
                 AnimatedVisibility(visible = firebaseViewModel.uploadingMedia!=null) {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.uploadanimation))
+                    val dynamicProperties = rememberLottieDynamicProperties(
+                        rememberLottieDynamicProperty(
+                            property = LottieProperty.COLOR_FILTER,
+                            value = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(
+                                MaterialTheme.colorScheme.primary.hashCode(),
+                                BlendModeCompat.COLOR
+                            ),
+                            keyPath = arrayOf(
+                                "**"
+                            )
+                        )
+                    )
+                    val status = firebaseViewModel.uploadStatus.collectAsState()
                     Row (
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -774,7 +787,12 @@ fun personChatScreen(
                         Card(
                             modifier = Modifier
                                 .padding(horizontal = 5.dp),
-                            shape = RoundedCornerShape(10.dp),
+                            shape =
+                                if(firebaseViewModel.isUploadingFile){
+                                    RoundedCornerShape(firebaseViewModel.userData?.userPref?.roundedCornerRadius!!.dp)
+                                }else{
+                                    RoundedCornerShape(10.dp)
+                                },
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer
                             )
@@ -783,64 +801,97 @@ fun personChatScreen(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.padding(3.dp)
                             ){
-                                GlideImage(
-                                    model = firebaseViewModel.uploadingMedia,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(280.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .blur(10.dp),
-                                    contentScale = ContentScale.Crop
-                                )
-                                Box(
-                                    modifier = Modifier.size(280.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val status = firebaseViewModel.uploadStatus.collectAsState()
-                                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.uploadanimation))
-                                    val dynamicProperties = rememberLottieDynamicProperties(
-                                        rememberLottieDynamicProperty(
-                                            property = LottieProperty.COLOR_FILTER,
-                                            value = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(
-                                                MaterialTheme.colorScheme.primary.hashCode(),
-                                                BlendModeCompat.COLOR
-                                            ),
-                                            keyPath = arrayOf(
-                                                "**"
-                                            )
+                                if(firebaseViewModel.isUploadingFile){
+                                    Row (
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.fileicon),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(60.dp)
+                                                .padding(10.dp)
                                         )
-                                    )
-                                    LottieAnimation(
-                                        composition = composition,
-                                        iterations = LottieConstants.IterateForever,
-                                        modifier = Modifier.size(150.dp),
-                                        dynamicProperties = dynamicProperties
+                                        Column(
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = firebaseViewModel.uploadFileName,
+                                                fontSize = fontSize!!.sp,
+                                                maxLines = 1,
+                                                modifier = Modifier.padding(5.dp),
+                                                overflow = TextOverflow.Ellipsis,
+                                                color = Color.White
+                                            )
+                                            Card{
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = status.value?.MegabytesTransferred!! + "/" + status.value?.totalMegaBytes!! + "MB",
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier.padding(start = 5.dp),
+                                                        color = Color.White,
+                                                        fontSize = 13.sp
+                                                    )
+                                                    CircularProgressIndicator(
+                                                        progress = { status.value?.progress!! },
+                                                        modifier = Modifier
+                                                            .size(25.dp)
+                                                            .padding(5.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = Color.White
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }else if(!firebaseViewModel.isUploadingFile){
+                                    GlideImage(
+                                        model = firebaseViewModel.uploadingMedia,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(280.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .blur(10.dp),
+                                        contentScale = ContentScale.Crop
                                     )
                                     Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.BottomStart
-                                    ){
-                                        Card(
-                                            modifier = Modifier.padding(10.dp)
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
+                                        modifier = Modifier.size(280.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        LottieAnimation(
+                                            composition = composition,
+                                            iterations = LottieConstants.IterateForever,
+                                            modifier = Modifier.size(150.dp),
+                                            dynamicProperties = dynamicProperties
+                                        )
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.BottomStart
+                                        ){
+                                            Card(
+                                                modifier = Modifier.padding(10.dp)
                                             ) {
-                                                Text(
-                                                    text = status.value?.MegabytesTransferred!! + "/" + status.value?.totalMegaBytes!! + "MB",
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(start = 5.dp),
-                                                    color = Color.White,
-                                                    fontSize = 13.sp
-                                                )
-                                                CircularProgressIndicator(
-                                                    progress = { status.value?.progress!! },
-                                                    modifier = Modifier
-                                                        .size(25.dp)
-                                                        .padding(5.dp),
-                                                    strokeWidth = 2.dp,
-                                                    color = Color.White
-                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = status.value?.MegabytesTransferred!! + "/" + status.value?.totalMegaBytes!! + "MB",
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier.padding(start = 5.dp),
+                                                        color = Color.White,
+                                                        fontSize = 13.sp
+                                                    )
+                                                    CircularProgressIndicator(
+                                                        progress = { status.value?.progress!! },
+                                                        modifier = Modifier
+                                                            .size(25.dp)
+                                                            .padding(5.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = Color.White
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -868,7 +919,10 @@ fun personChatScreen(
                                     if(taskViewModel.isEditing){
                                         "Edit Message"
                                     }else{
-                                        "Send Media?"
+                                        if(firebaseViewModel.isUploadingFile)
+                                            "Send File?"
+                                        else
+                                            "Send Media?"
                                     },
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold
@@ -933,7 +987,42 @@ fun personChatScreen(
                                         .clip(RoundedCornerShape(20.dp))
                                         .align(Alignment.CenterHorizontally)
                                 )
-                            }else{
+                            }else if(firebaseViewModel.isUploadingFile){
+                                firebaseViewModel.mediaUri.let {
+                                    firebaseViewModel.fileName =
+                                        firebaseViewModel.mediaUri?.let { it1 ->
+                                            getFileNameFromUri(ctx,
+                                                it1
+                                            )
+                                        }
+                                }
+                                Row (
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
+                                ){
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.fileicon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                    Spacer(modifier = Modifier.size(5.dp))
+                                    Text(
+                                        text =
+                                        if(taskViewModel.isEditing){
+                                            firebaseViewModel.selectedMessage?.filename.toString()
+                                        }else{
+                                            firebaseViewModel.fileName.toString()
+                                        },
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = fontSize!!.sp
+                                    )
+                                }
+                            }
+                            else{
                                 AsyncImage(
                                     model = firebaseViewModel.mediaUri,
                                     contentDescription = null,
@@ -1008,19 +1097,31 @@ fun personChatScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ){
-                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.image!=null){
-                                        if(firebaseViewModel.repliedTo?.isVideo==true){
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.videonotifiericon),
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .size(50.dp)
-                                                    .padding(10.dp),
-                                                tint = Color.White
-                                            )
+                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.media!=null){
+                                        if(firebaseViewModel.repliedTo?.isFile==true){
+                                            Row (
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ){
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.fileicon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(60.dp)
+                                                        .padding(10.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                                Text(
+                                                    text = firebaseViewModel.repliedTo?.filename.toString(),
+                                                    maxLines = 1,
+                                                    fontSize = fontSize!!.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
                                         }else{
-                                            SubcomposeAsyncImage(
-                                                model = firebaseViewModel.repliedTo?.image,
+                                            GlideImage(
+                                                model = firebaseViewModel.repliedTo?.media,
                                                 contentDescription = null,
                                                 modifier = Modifier
                                                     .size(100.dp)
@@ -1031,28 +1132,30 @@ fun personChatScreen(
                                             )
                                         }
                                     }
-                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.message != "") {
+                                    AnimatedVisibility(visible = firebaseViewModel.repliedTo?.message != "" && firebaseViewModel.repliedTo?.isFile==false) {
                                         Column(
                                             verticalArrangement = Arrangement.Center
                                         ) {
-                                            AnimatedVisibility(visible = firebaseViewModel.repliedTo?.image!=null) {
+                                            AnimatedVisibility(visible = firebaseViewModel.repliedTo?.media!=null) {
                                                 Text(
                                                     text = if(firebaseViewModel.repliedTo?.isVideo==true) "Video" else "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.Bold
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = fontSize!!.sp
                                                 )
                                             }
                                             Text(
                                                 text = if(firebaseViewModel.repliedTo?.message.isNullOrEmpty()) "" else firebaseViewModel.repliedTo?.message.toString(),
                                                 modifier = Modifier.padding(
-                                                    start = if(firebaseViewModel.repliedTo?.image!=null) 0.dp else 10.dp,
+                                                    start = if(firebaseViewModel.repliedTo?.media!=null) 0.dp else 10.dp,
                                                     end = 10.dp,
                                                     bottom = 10.dp,
-                                                    top = if(firebaseViewModel.repliedTo?.image!=null) 0.dp else 10.dp
+                                                    top = if(firebaseViewModel.repliedTo?.media!=null) 0.dp else 10.dp
                                                 ),
                                                 color = Color.White,
                                                 maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis
+                                                overflow = TextOverflow.Ellipsis,
+                                                fontSize = fontSize!!.sp
                                             )
                                         }
                                     }
@@ -1061,7 +1164,7 @@ fun personChatScreen(
                         }
                     }
                 }
-                AnimatedVisibility(visible = taskViewModel.selectImageOrVideo) {
+                AnimatedVisibility(visible = taskViewModel.selectMedia) {
                     Row (
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -1080,6 +1183,34 @@ fun personChatScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceAround
                             ){
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.fileicon),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(35.dp)
+                                            .clickable {
+                                                filePicker.launch(
+                                                    arrayOf(
+                                                        "application/*",
+                                                        "audio/*",
+                                                        "text/*"
+                                                    )
+                                                )
+                                                firebaseViewModel.isUploadingVideo = false
+                                                firebaseViewModel.isUploadingFile = true
+                                                taskViewModel.selectMedia = false
+                                            },
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "Files",
+                                        fontSize = (fontSize!!-2).sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                                 Column (
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ){
@@ -1091,13 +1222,14 @@ fun personChatScreen(
                                             .clickable {
                                                 imagePicker.launch(cropOption)
                                                 firebaseViewModel.isUploadingVideo = false
-                                                taskViewModel.selectImageOrVideo = false
+                                                firebaseViewModel.isUploadingFile = false
+                                                taskViewModel.selectMedia = false
                                             },
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
                                         text = "Image",
-                                        fontSize = 15.sp,
+                                        fontSize = (fontSize!!-2).sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1114,13 +1246,14 @@ fun personChatScreen(
                                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
                                                 )
                                                 firebaseViewModel.isUploadingVideo = true
-                                                taskViewModel.selectImageOrVideo = false
+                                                firebaseViewModel.isUploadingFile = false
+                                                taskViewModel.selectMedia = false
                                             },
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
                                         text = "Video",
-                                        fontSize = 15.sp,
+                                        fontSize = (fontSize!!-2).sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1170,10 +1303,10 @@ fun personChatScreen(
                                     unfocusedBorderColor = Color.Transparent,
                                 ),
                                 trailingIcon = {
-                                    AnimatedVisibility(visible = firebaseViewModel.mediaUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.image!=null)) {
+                                    AnimatedVisibility(visible = firebaseViewModel.mediaUri==null && (!taskViewModel.isEditing || firebaseViewModel.selectedMessage?.media!=null)) {
                                         IconButton(
                                             onClick = {
-                                                taskViewModel.selectImageOrVideo = !taskViewModel.selectImageOrVideo
+                                                taskViewModel.selectMedia = !taskViewModel.selectMedia
                                             },
                                             modifier = Modifier.padding(end = 10.dp)
                                         ) {
@@ -1207,7 +1340,8 @@ fun personChatScreen(
                                             firebaseViewModel.uploadMediaAndSendMessage(
                                                 firebaseViewModel.chattingWith?.userId.toString(),
                                                 firebaseViewModel.text,
-                                                repliedTo = firebaseViewModel.repliedTo
+                                                repliedTo = firebaseViewModel.repliedTo,
+                                                context = ctx
                                             )
                                         }
                                         firebaseViewModel.text = ""

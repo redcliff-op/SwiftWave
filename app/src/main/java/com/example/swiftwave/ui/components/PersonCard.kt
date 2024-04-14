@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +41,7 @@ fun PersonCard(
     navController: NavController,
     taskViewModel: TaskViewModel
 ){
+    val ctx = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -55,7 +57,8 @@ fun PersonCard(
                 firebaseViewModel.uploadMediaAndSendMessage(
                     firebaseViewModel.chattingWith?.userId.toString(),
                     firebaseViewModel.forwarded?.message.toString(),
-                    null
+                    null,
+                    context = ctx,
                 )
                 taskViewModel.isForwarding = false
             }
@@ -111,11 +114,13 @@ fun PersonCard(
                             modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if(userData.latestMessage?.image !=null){
+                            if(userData.latestMessage?.media !=null){
                                 Icon(
                                     painter = painterResource(
                                         id = if(userData.latestMessage?.isVideo==true){
                                             R.drawable.videonotifiericon
+                                        }else if(userData.latestMessage?.isFile == true){
+                                            R.drawable.fileicon
                                         }else{
                                             R.drawable.latestimageicon
                                         }

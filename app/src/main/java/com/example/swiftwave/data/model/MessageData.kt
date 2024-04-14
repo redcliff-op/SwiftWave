@@ -5,7 +5,7 @@ data class MessageData(
     val message : String? = "",
     val senderID : String? = "",
     val time : Long ? = 0,
-    val image : String? = null,
+    val media : String? = null,
     var curUserReaction : String? = "",
     var otherUserReaction : String? = "",
     var repliedTo: MessageData? = null,
@@ -13,5 +13,7 @@ data class MessageData(
     var starred: Boolean? = false,
     var read: Boolean? = false,
     var storyReply: Boolean? = false,
-    var isVideo: Boolean? = false
+    var isVideo: Boolean? = false,
+    var isFile: Boolean? = false,
+    var filename: String? = ""
 )

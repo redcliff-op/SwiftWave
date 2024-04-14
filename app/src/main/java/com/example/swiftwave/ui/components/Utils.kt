@@ -1,5 +1,8 @@
 package com.example.swiftwave.ui.components
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import com.example.swiftwave.R
 import com.example.swiftwave.data.model.bottomNavBarItem
 
@@ -67,3 +70,12 @@ val doodleBackgroundList = listOf(
     R.drawable.i7,
     R.drawable.i8
 )
+
+fun getFileNameFromUri(context: Context, uri: Uri): String? {
+    val fileName: String?
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+    cursor?.moveToFirst()
+    fileName = cursor?.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+    cursor?.close()
+    return fileName
+}

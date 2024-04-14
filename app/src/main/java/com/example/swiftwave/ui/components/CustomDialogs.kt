@@ -444,7 +444,7 @@ fun ImageDialog(
                                         message = firebaseViewModel.text,
                                         repliedTo = MessageData(
                                             senderID = firebaseViewModel.chattingWith?.userId.toString(),
-                                            image = firebaseViewModel.imageString
+                                            media = firebaseViewModel.imageString
                                         ),
                                         storyReply = true
                                     )
@@ -700,7 +700,7 @@ fun VideoDialog(
             VideoPlayer(
                 mediaItems = listOf(
                     VideoPlayerMediaItem.NetworkMediaItem(
-                        url = firebaseViewModel.videoString,
+                        url = firebaseViewModel.mediaString,
                     )
                 ),
                 handleLifecycle = true,

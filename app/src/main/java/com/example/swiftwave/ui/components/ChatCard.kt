@@ -1,5 +1,7 @@
 package com.example.swiftwave.ui.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +51,7 @@ import com.example.swiftwave.R
 import com.example.swiftwave.data.model.MessageData
 import com.example.swiftwave.ui.viewmodels.FirebaseViewModel
 import com.example.swiftwave.ui.viewmodels.TaskViewModel
+
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
 @Composable
@@ -161,9 +165,14 @@ fun chatCard(
                     onLongClick = {
                         if (firebaseViewModel.chattingWith?.blocked?.contains(firebaseViewModel.userData?.userId.toString()) == false) {
                             firebaseViewModel.selectedMessage = messageData
-                            if(messageData.isVideo==true){
+                            if (messageData.isVideo == true) {
                                 firebaseViewModel.isUploadingVideo = true
+                                firebaseViewModel.isUploadingFile = false
+                            } else if (messageData.isFile == true){
+                                firebaseViewModel.isUploadingFile = true
+                                firebaseViewModel.isUploadingVideo = false
                             }else{
+                                firebaseViewModel.isUploadingFile = false
                                 firebaseViewModel.isUploadingVideo = false
                             }
                             taskViewModel.chatOptions = true
@@ -209,7 +218,7 @@ fun chatCard(
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 5.dp),
-                    shape = if(messageData.image!=null){
+                    shape = if(messageData.media!=null && messageData.isFile==false){
                         RoundedCornerShape(
                             topEnd = 10.dp,
                             topStart = 10.dp,
@@ -321,7 +330,7 @@ fun chatCard(
                 ) {
                     Column(
                         modifier =
-                        if(messageData.image!=null){
+                        if(messageData.media!=null && messageData.isFile==false){
                             Modifier.width(280.dp)
                         }else{
                             Modifier
@@ -406,46 +415,56 @@ fun chatCard(
                                     Row (
                                         verticalAlignment = Alignment.CenterVertically
                                     ){
-                                        if(messageData.repliedTo?.image!=null){
-                                            if(messageData.repliedTo?.isVideo==true){
+                                        if(messageData.repliedTo?.media!=null){
+                                            if(messageData.repliedTo?.isFile==true){
                                                 Icon(
-                                                        painter = painterResource(id = R.drawable.videonotifiericon),
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                                .size(25.dp),
-                                                        tint = Color.White
+                                                    painter = painterResource(id = R.drawable.fileicon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(45.dp),
+                                                    tint = Color.White
+                                                )
+                                            }
+                                            else if(messageData.repliedTo?.isVideo==true){
+                                                GlideImage(
+                                                    model = messageData.repliedTo?.media,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .clip(RoundedCornerShape(10.dp)),
+                                                    contentScale = ContentScale.Crop
                                                 )
                                             }else{
                                                 SubcomposeAsyncImage(
-                                                        model = messageData.repliedTo?.image,
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                                .size(40.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(shape = RoundedCornerShape(4.dp)),
-                                                        contentScale = ContentScale.Crop,
-                                                        loading = {
-                                                            Row (
-                                                                    modifier =  Modifier.fillMaxSize(),
-                                                                    horizontalArrangement = Arrangement.Center,
-                                                                    verticalAlignment = Alignment.CenterVertically
-                                                            ){
-                                                                CircularProgressIndicator()
-                                                            }
-                                                        },
-                                                        error = {
-                                                            Row (
-                                                                    modifier =  Modifier.fillMaxSize(),
-                                                                    horizontalArrangement = Arrangement.Center,
-                                                                    verticalAlignment = Alignment.CenterVertically
-                                                            ){
-                                                                Icon(
-                                                                        painter = painterResource(id = R.drawable.erroricon),
-                                                                        contentDescription = null,
-                                                                        modifier = Modifier.size(30.dp)
-                                                                )
-                                                            }
+                                                    model = messageData.repliedTo?.media,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(shape = RoundedCornerShape(4.dp)),
+                                                    contentScale = ContentScale.Crop,
+                                                    loading = {
+                                                        Row (
+                                                            modifier =  Modifier.fillMaxSize(),
+                                                            horizontalArrangement = Arrangement.Center,
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ){
+                                                            CircularProgressIndicator()
                                                         }
+                                                    },
+                                                    error = {
+                                                        Row (
+                                                            modifier =  Modifier.fillMaxSize(),
+                                                            horizontalArrangement = Arrangement.Center,
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ){
+                                                            Icon(
+                                                                painter = painterResource(id = R.drawable.erroricon),
+                                                                contentDescription = null,
+                                                                modifier = Modifier.size(30.dp)
+                                                            )
+                                                        }
+                                                    }
                                                 )
                                             }
                                             Spacer(modifier = Modifier.size(5.dp))
@@ -454,25 +473,20 @@ fun chatCard(
                                             modifier = Modifier,
                                             verticalArrangement = Arrangement.Center
                                         ) {
-                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false && messageData.repliedTo?.isVideo==true && messageData.repliedTo?.message?.isEmpty()==true){
+                                            if(messageData.repliedTo?.media!=null && messageData.storyReply==false){
                                                 Text(
-                                                        text = "Video",
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        fontSize = fontSize.sp,
-                                                        textAlign = TextAlign.Center
-                                                )
-                                            }
-                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==false && messageData.repliedTo?.isVideo==false){
-                                                Text(
-                                                    text = "Photo",
+                                                    text =
+                                                    if(messageData.repliedTo?.isVideo==true)
+                                                        "Video"
+                                                    else if(messageData.repliedTo?.isFile==true)
+                                                        "File"
+                                                    else "Photo",
                                                     color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.SemiBold,
                                                     fontSize = fontSize.sp,
                                                     textAlign = TextAlign.Center
                                                 )
                                             }
-                                            if(messageData.repliedTo?.image!=null && messageData.storyReply==true){
+                                            if(messageData.repliedTo?.media!=null && messageData.storyReply==true){
                                                 var storyUser = "Your"
                                                 if(messageData.repliedTo?.senderID!=firebaseViewModel.userData?.userId)
                                                     storyUser = firebaseViewModel.chattingWith?.username.toString().substring(0,10).split(" ").get(0)+"'s"
@@ -482,9 +496,14 @@ fun chatCard(
                                                     fontSize = fontSize.sp
                                                 )
                                             }
-                                            if(messageData.repliedTo?.message?.isNotEmpty()==true){
+                                            if(messageData.repliedTo?.message?.isNotEmpty()==true || messageData.repliedTo?.isFile==true){
                                                 Text(
-                                                    text = messageData.repliedTo?.message.toString(),
+                                                    text =
+                                                        if(messageData.repliedTo?.isFile==true){
+                                                            messageData.repliedTo?.filename.toString()
+                                                        }else{
+                                                            messageData.repliedTo?.message.toString()
+                                                        },
                                                     color = Color.White,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis,
@@ -496,20 +515,54 @@ fun chatCard(
                                 }
                             }
                         }
-                        if(messageData.image!=null){
-                            if(messageData.isVideo==true){
+                        if(messageData.media!=null){
+                            if(messageData.isFile==true){
+                                val ctx = LocalContext.current
+                                Row (
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 15.dp,
+                                            top = 10.dp
+                                        )
+                                        .clickable {
+                                            val uri = Uri.parse(messageData.media)
+                                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                                            ctx.startActivity(intent)
+                                        },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
+                                ){
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.fileicon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                    Spacer(modifier = Modifier.size(5.dp))
+                                    Text(
+                                        text = messageData.filename.toString(),
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = fontSize.sp
+                                    )
+                                }
+                            }
+                            else if(messageData.isVideo==true){
                                 Box(
-                                    modifier = Modifier.size(280.dp).padding(3.dp),
+                                    modifier = Modifier
+                                        .size(280.dp)
+                                        .padding(3.dp),
                                     contentAlignment = Alignment.Center
                                 ){
                                     GlideImage(
-                                        model = messageData.image,
+                                        model = messageData.media,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(280.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .clickable {
-                                                firebaseViewModel.videoString = messageData.image
+                                                firebaseViewModel.mediaString = messageData.media
                                                 firebaseViewModel.mediaViewText =
                                                     messageData.message.toString()
                                                 firebaseViewModel.sentBy =
@@ -584,7 +637,7 @@ fun chatCard(
                                 }
                             }else{
                                 SubcomposeAsyncImage(
-                                    model = messageData.image,
+                                    model = messageData.media,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .padding(
@@ -593,7 +646,7 @@ fun chatCard(
                                             top = 3.dp,
                                         )
                                         .clickable {
-                                            firebaseViewModel.imageString = messageData.image
+                                            firebaseViewModel.imageString = messageData.media
                                             firebaseViewModel.mediaViewText =
                                                 messageData.message.toString()
                                             firebaseViewModel.sentBy =
@@ -607,7 +660,8 @@ fun chatCard(
                                                 firebaseViewModel.imageDialogProfilePicture =
                                                     firebaseViewModel.chattingWith?.profilePictureUrl.toString()
                                             }
-                                        }.size(280.dp)
+                                        }
+                                        .size(280.dp)
                                         .clip(RoundedCornerShape(10.dp)),
                                     contentScale = ContentScale.Crop,
                                     loading = {

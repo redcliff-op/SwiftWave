@@ -44,7 +44,7 @@ class FirebaseViewModel: ViewModel() {
     var text by mutableStateOf("")
     var mediaUri by mutableStateOf<Uri?>(null)
     var imageString by mutableStateOf("")
-    var videoString by mutableStateOf("")
+    var mediaString by mutableStateOf("")
     var mediaViewText by mutableStateOf("")
     var newUser by mutableStateOf("")
     var Bio by mutableStateOf("")
@@ -65,6 +65,9 @@ class FirebaseViewModel: ViewModel() {
     var searchIndex by mutableStateOf<Int?>(null)
     var searchListIndex by mutableStateOf<Int?>(null)
     var isUploadingVideo by mutableStateOf(false)
+    var isUploadingFile by mutableStateOf(false)
+    var fileName by mutableStateOf<String?>("")
+    var uploadFileName by mutableStateOf("")
 
     private var firebase: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val _chatListUsers = MutableStateFlow<List<UserData>>(emptyList())
@@ -273,10 +276,20 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-    fun sendMessage(otherUserId: String, message: String, imageUrl : String ? = null, repliedTo: MessageData? = null, forwarded: Boolean? = false, storyReply: Boolean? = false, isVideo: Boolean? = false) {
+    fun sendMessage(
+        otherUserId: String,
+        message: String,
+        imageUrl : String ? = null,
+        repliedTo: MessageData? = null,
+        forwarded: Boolean? = false,
+        storyReply: Boolean? = false,
+        isVideo: Boolean? = false,
+        isFile: Boolean? = false,
+        filename: String? = ""
+    ) {
         viewModelScope.launch(Dispatchers.IO){
             val currentTime = System.currentTimeMillis()
-            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded, storyReply = storyReply, isVideo = isVideo)
+            val messageData = MessageData(message, userData?.userId.toString(), currentTime, imageUrl, repliedTo = repliedTo, isForwarded = forwarded, storyReply = storyReply, isVideo = isVideo, isFile = isFile, filename = filename)
             firebase.collection("conversations").document(userData?.userId.toString())
                 .collection(otherUserId)
                 .add(messageData)
@@ -301,21 +314,24 @@ class FirebaseViewModel: ViewModel() {
         }
     }
 
-    fun uploadMediaAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?, video: Boolean = isUploadingVideo) {
+    fun uploadMediaAndSendMessage(otherUserId: String, message: String, repliedTo: MessageData?, context: Context) {
         viewModelScope.launch {
             _uploadStatus.value = UploadStatus()
             val isVideo = isUploadingVideo
+            val isFile = isUploadingFile
+            uploadFileName = fileName.toString()
             if (forwarded != null) {
-                if (forwarded?.image != null) {
-                    sendMessage(otherUserId, imageUrl = forwarded?.image, message = message, forwarded = forwarded?.isForwarded, isVideo = isVideo)
+                if (forwarded?.media != null) {
+                    sendMessage(otherUserId, imageUrl = forwarded?.media, message = message, forwarded = forwarded?.isForwarded, isVideo = forwarded?.isVideo, isFile = forwarded?.isFile, filename = forwarded?.filename )
                 } else {
                     sendMessage(otherUserId, message = message, repliedTo = repliedTo, forwarded = forwarded?.isForwarded)
                 }
                 forwarded = null
             } else if (mediaUri != null) {
                 uploadingMedia = mediaUri
-                val storageRef = Firebase.storage.reference.child("images/${UUID.randomUUID()}")
+                val storageRef = Firebase.storage.reference.child("media/${uploadFileName}-${UUID.randomUUID()}")
                 val uploadTask = storageRef.putFile(mediaUri!!)
+                fileName = uploadFileName
                 uploadTask.addOnProgressListener { taskSnapshot ->
                     val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toFloat()
                     val megabytesTransferred = String.format("%.1f", taskSnapshot.bytesTransferred.toDouble() / 1048576)
@@ -325,7 +341,7 @@ class FirebaseViewModel: ViewModel() {
                 uploadTask.addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { uri ->
                         val imageUrl = uri.toString()
-                        sendMessage(otherUserId, imageUrl = imageUrl, message = message, isVideo = isVideo)
+                        sendMessage(otherUserId, imageUrl = imageUrl, message = message, isVideo = isVideo, isFile = isFile, filename = uploadFileName)
                     }
                 }
             } else {
@@ -512,7 +528,7 @@ class FirebaseViewModel: ViewModel() {
             }
 
             if(messageData.isForwarded == false){
-                messageData.image?.let { imageUrl ->
+                messageData.media?.let { imageUrl ->
                     val storageRef = Firebase.storage.getReferenceFromUrl(imageUrl)
                     storageRef.delete()
                 }

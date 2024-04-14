@@ -104,7 +104,7 @@ fun demoChatCard(
                 ) {
                     Column(
                         modifier =
-                        if(messageData.image!=null){
+                        if(messageData.media!=null){
                             Modifier.width(280.dp)
                         }else{
                             Modifier
