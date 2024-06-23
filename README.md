@@ -4,6 +4,12 @@ Crafting Connections, Crafting Conversations: Enter the Realm of SwiftWave!
 
 A Fully Functional Online Social Media Application Built on MVVM architecture using Kotlin + Jetpack Compose
 
+**Screenshots**
+<img width="2100" alt="1" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/1cf55d17-060c-4d10-8445-13e00cc84b71">
+<img width="2339" alt="knu" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/26fa7dff-cb66-4d74-92ed-31b0578099da">
+<img width="5061" alt="Untitled (2)" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/1cebb3fa-659a-40cb-9c1d-f646734d16f4">
+<img width="8351" alt="Untitled (3)" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/fbcb38b1-22ae-45ef-9853-08bf34ef6b5f">
+
 **Features**
 
 **1) Messages and Media**
@@ -99,9 +105,4 @@ Thanks to @CanHub for Image Cropper
 **Click the Link to see the App in Action!**
 https://drive.google.com/file/d/1XrQtiqISQwlzP7vEYHODuo7poUjuY_XJ/view?usp=sharing
 
-**Screenshots**
-<img width="2100" alt="1" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/1cf55d17-060c-4d10-8445-13e00cc84b71">
-<img width="2339" alt="knu" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/26fa7dff-cb66-4d74-92ed-31b0578099da">
-<img width="5061" alt="Untitled (2)" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/1cebb3fa-659a-40cb-9c1d-f646734d16f4">
-<img width="8351" alt="Untitled (3)" src="https://github.com/redcliff-op/SwiftWave/assets/78088434/fbcb38b1-22ae-45ef-9853-08bf34ef6b5f">
 
